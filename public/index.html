@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full bg-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ thống Điều hành Công văn và Dịch vụ Trực tuyến Cấp Xã</title>
+  <meta name="description" content="Hệ thống quản lý văn bản, phê duyệt công văn nhiều cấp và dịch vụ trực tuyến phục vụ UBND xã và người dân">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
+
+  <!-- Google Fonts: Be Vietnam Pro & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Arial', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              600: '#1d4ed8',
+              700: '#1d4ed8',
+              800: '#133e87',
+              900: '#0b2545',
+              950: '#07162c'
+            },
+            gold: {
+              400: '#fbbf24',
+              500: '#d4af37',
+              600: '#b8972e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js CDN for Analytics & Statistics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Custom Stylesheets -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="h-full bg-slate-100/90 text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+  
+  <!-- Root Single Page App Container -->
+  <div id="app-root" class="min-h-full flex flex-col">
+    <div class="min-h-screen flex items-center justify-center p-6 text-center">
+      <div class="space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-blue-900 text-amber-300 flex items-center justify-center mx-auto text-xl font-bold shadow-md animate-bounce">
+          🏛️
+        </div>
+        <div class="font-bold text-slate-800 text-sm">HỆ THỐNG ĐIỀU HÀNH CÔNG VĂN & DỊCH VỤ TRỰC TUYẾN</div>
+        <div class="text-xs text-slate-500">Đang khởi tạo giao diện điều hành UBND xã...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Core API Client -->
+  <script src="/js/api.js"></script>
+
+  <!-- Reusable UI Components -->
+  <script src="/js/components/modals.js"></script>
+  <script src="/js/components/header.js"></script>
+  <script src="/js/components/sidebar.js"></script>
+
+  <!-- Pages -->
+  <script src="/js/pages/login.js"></script>
+  <script src="/js/pages/dashboard.js"></script>
+  <script src="/js/pages/doc_out.js"></script>
+  <script src="/js/pages/doc_form.js"></script>
+  <script src="/js/pages/doc_detail.js"></script>
+  <script src="/js/pages/approval_inbox.js"></script>
+  <script src="/js/pages/approval_history.js"></script>
+  <script src="/js/pages/doc_in.js"></script>
+  <script src="/js/pages/citizen_portal.js"></script>
+  <script src="/js/pages/request_tracking.js"></script>
+  <script src="/js/pages/requests_manage.js"></script>
+  <script src="/js/pages/tasks.js"></script>
+  <script src="/js/pages/kpi_workspace.js"></script>
+  <script src="/js/pages/kpi_assistant.js"></script>
+  <script src="/js/pages/kpi_dashboard.js"></script>
+  <script src="/js/pages/service_rating.js"></script>
+  <script src="/js/pages/app_rating.js"></script>
+  <script src="/js/pages/rating_stats.js"></script>
+  <script src="/js/pages/reports.js"></script>
+  <script src="/js/pages/notifications.js"></script>
+  <script src="/js/pages/user_management.js"></script>
+  <script src="/js/pages/role_management.js"></script>
+  <script src="/js/pages/unit_settings.js"></script>
+  <script src="/js/pages/workflow_settings.js"></script>
+  <script src="/js/pages/audit_logs.js"></script>
+
+  <!-- Main App Router -->
+  <script src="/js/app.js"></script>
+</body>
+</html>
