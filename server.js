@@ -38,11 +38,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 const kpiRouter = require('./routes/kpi');
 app.use('/api', kpiRouter);
 
+// Tự động kiểm tra và khởi tạo dữ liệu mẫu nếu cơ sở dữ liệu trống (khi mới triển khai lên Render/Cloud)
 try {
-  const { seedKpiData } = require('./database/seed_kpi');
-  seedKpiData();
+  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
+  if (!userCount || userCount.count === 0) {
+    console.log('--- Cơ sở dữ liệu mới trên máy chủ: Đang tự động nạp dữ liệu mẫu ban đầu ---');
+    runSeed();
+    console.log('--- Đã nạp thành công toàn bộ dữ liệu mẫu người dùng, văn bản và KPI ---');
+  } else {
+    try {
+      const { seedKpiData } = require('./database/seed_kpi');
+      seedKpiData();
+    } catch (e) {
+      console.error('Lỗi khởi tạo KPI seed:', e.message);
+    }
+  }
 } catch (e) {
-  console.error('Lỗi khởi tạo KPI seed:', e.message);
+  console.error('Lỗi tự động seed dữ liệu:', e.message);
 }
 
 // Configure Multer for file uploads
@@ -129,7 +141,16 @@ app.post('/api/auth/login', (req, res) => {
   }
 
   const cleanUsername = String(username).trim();
-  const user = db.prepare('SELECT * FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
+  let user = db.prepare('SELECT * FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
+  if (!user) {
+    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
+    if (!userCount || userCount.count === 0) {
+      console.log('Tự động nạp dữ liệu mẫu ban đầu do phát hiện chưa có người dùng...');
+      runSeed();
+      user = db.prepare('SELECT * FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
+    }
+  }
+
   if (!user || !user.is_active) {
     return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không chính xác' });
   }
@@ -224,7 +245,16 @@ app.post('/api/auth/register', (req, res) => {
 // Chuyển đổi nhanh vai trò (Demo Quick Switcher)
 app.post('/api/auth/quick-switch', (req, res) => {
   const { username } = req.body;
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  let user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  if (!user) {
+    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
+    if (!userCount || userCount.count === 0) {
+      console.log('Tự động nạp dữ liệu mẫu ban đầu do phát hiện chưa có người dùng...');
+      runSeed();
+      user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+    }
+  }
+
   if (!user || !user.is_active) {
     return res.status(404).json({ error: 'Tài khoản không tồn tại' });
   }
