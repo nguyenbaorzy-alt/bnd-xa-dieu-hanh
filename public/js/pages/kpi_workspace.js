@@ -28,9 +28,12 @@ const KpiWorkspacePage = {
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h1 class="text-base sm:text-lg font-bold text-slate-900">Không gian làm việc HanoiWork</h1>
+                <h1 class="text-base sm:text-lg font-bold text-slate-900">Không gian làm việc BAO-WORK & HANOIWORK</h1>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300">
                   Cây lưu trữ 3 Cấp
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300">
+                  Bao-Algo™ Powered
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">Quản trị Dự án → Thư mục → Chương trình hành động → Nhiệm vụ & Nhiệm vụ con (Chuẩn 6 Rõ)</p>
@@ -38,9 +41,13 @@ const KpiWorkspacePage = {
           </div>
 
           <div class="flex items-center gap-2 flex-wrap">
+            <a href="#kpi-algo" class="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 text-purple-700 font-bold text-xs transition flex items-center gap-1.5 border border-purple-200/80 shadow-2xs">
+              <i data-lucide="brain-circuit" class="w-4 h-4 text-purple-600"></i>
+              <span>B-Algo™ AI Thuật Toán</span>
+            </a>
             <a href="#kpi-assistant" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
-              <span>Trợ lý AI KPI Assistant</span>
+              <span>Trợ lý AI B-Assistant™</span>
             </a>
             <a href="#kpi-dashboard" class="px-3.5 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs transition flex items-center gap-1.5 border border-blue-200">
               <i data-lucide="bar-chart-3" class="w-4 h-4"></i>

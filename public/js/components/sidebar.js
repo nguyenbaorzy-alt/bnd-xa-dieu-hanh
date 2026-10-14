@@ -100,12 +100,15 @@ const Sidebar = {
             </div>
           </div>
 
-          <!-- Phân hệ mới: QUẢN TRỊ OKR/KPI & HANOIWORK -->
+          <!-- Phân hệ độc quyền: BAO-WORK™ & AI KPI ENGINE -->
           ${user.role !== 'citizen' ? `
             <div>
               <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center justify-between">
-                <span>HANOIWORK & OKR/KPI</span>
-                <span class="text-[9px] bg-gradient-to-r from-amber-500 to-amber-300 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-xs">AI 2026</span>
+                <span class="flex items-center gap-1.5 font-black text-amber-300 tracking-wide">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  BAO-WORK & OKR/KPI
+                </span>
+                <span class="text-[9px] bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-xs uppercase tracking-tight">AI ALGO 2026</span>
               </div>
               <div class="space-y-1">
                 <a href="#kpi-workspace" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isActive('kpi-workspace') || isActive('tasks')}">
@@ -114,7 +117,14 @@ const Sidebar = {
                 </a>
                 <a href="#kpi-assistant" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isActive('kpi-assistant')} text-amber-200 hover:text-white">
                   <i data-lucide="sparkles" class="w-4 h-4 shrink-0 text-amber-300"></i>
-                  <span>Trợ lý AI KPI Assistant</span>
+                  <span>Trợ lý AI B-Assistant™</span>
+                </a>
+                <a href="#kpi-algo" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition ${isActive('kpi-algo')} bg-gradient-to-r from-purple-500/15 via-blue-500/10 to-transparent border border-purple-500/30 text-purple-200 hover:text-white group">
+                  <div class="flex items-center gap-3">
+                    <i data-lucide="brain-circuit" class="w-4 h-4 shrink-0 text-purple-400 group-hover:rotate-12 transition"></i>
+                    <span class="font-semibold text-purple-100">B-Algo: AI Sinh Thuật Toán</span>
+                  </div>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-purple-500/30 text-purple-300 border border-purple-400/40 tracking-wider">ĐỘC QUYỀN</span>
                 </a>
                 <a href="#kpi-dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isActive('kpi-dashboard')}">
                   <i data-lucide="bar-chart-3" class="w-4 h-4 shrink-0 text-emerald-400"></i>

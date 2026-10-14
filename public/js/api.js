@@ -524,6 +524,22 @@ const API = {
       method: 'POST',
       body: JSON.stringify({ question })
     });
+  },
+  // B-Algo Studio (AI Tính toán & Sinh Thuật toán KPI)
+  async getKpiAlgoCurrent() {
+    return this.request('/api/kpi/algo/current');
+  },
+  async generateKpiAlgo(data) {
+    return this.request('/api/kpi/algo/generate', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  async applyKpiAlgo(algoConfig) {
+    return this.request('/api/kpi/algo/apply', {
+      method: 'POST',
+      body: JSON.stringify(algoConfig)
+    });
   }
 };
 

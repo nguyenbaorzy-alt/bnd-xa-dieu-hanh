@@ -15,6 +15,7 @@ const App = {
     'tasks': KpiWorkspacePage,
     'kpi-workspace': KpiWorkspacePage,
     'kpi-assistant': KpiAssistantPage,
+    'kpi-algo': KpiAlgoPage,
     'kpi-dashboard': KpiDashboardPage,
     'service-rating': ServiceRatingPage,
     'app-rating': AppRatingPage,
