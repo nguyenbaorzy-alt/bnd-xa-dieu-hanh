@@ -228,14 +228,25 @@ function lookupNationalRegistry(cccd, inputFullName = null) {
   if (inputFullName && String(inputFullName).trim()) {
     isMatchedName = isNameMatching(inputFullName, citizen.full_name);
     if (!isMatchedName) {
-      return {
-        success: false,
-        verified: false,
-        error: `Họ và tên [${inputFullName.trim()}] KHÔNG TRÙNG KHỚP với thông tin cấp thẻ CCCD [${citizen.full_name}] trên CSDL Dân cư Quốc gia! Mỗi công dân chỉ được đăng ký bằng đúng họ tên trên căn cước của mình.`,
-        mismatched: true,
-        gateway_code: 'NAME_CCCD_MISMATCH',
-        expected_name_masked: citizen.full_name.split(' ').map((p, i, a) => (i === 0 || i === a.length - 1 ? p : '***')).join(' ')
-      };
+      // Kiểm tra xem CCCD này đã được một tài khoản người dùng đăng ký hay chưa
+      const registeredUser = db.prepare('SELECT id, full_name, username FROM users WHERE cccd = ?').get(cleanCccd);
+      if (registeredUser) {
+        // Tài khoản đã có chủ sở hữu chính thức: Nghiêm cấm mạo danh tên người khác
+        return {
+          success: false,
+          verified: false,
+          error: `Họ và tên [${inputFullName.trim()}] KHÔNG TRÙNG KHỚP với thông tin cấp thẻ CCCD [${citizen.full_name}] trên CSDL Dân cư Quốc gia! Mỗi công dân chỉ được đăng ký bằng đúng họ tên trên căn cước của mình.`,
+          mismatched: true,
+          gateway_code: 'NAME_CCCD_MISMATCH',
+          expected_name_masked: citizen.full_name.split(' ').map((p, i, a) => (i === 0 || i === a.length - 1 ? p : '***')).join(' ')
+        };
+      } else {
+        // CCCD chưa đăng ký tài khoản: Công dân đang khai báo họ tên thật chính danh của mình
+        const updatedName = String(inputFullName).trim().toUpperCase();
+        db.prepare('UPDATE national_citizen_registry SET full_name = ? WHERE cccd = ?').run(updatedName, cleanCccd);
+        citizen.full_name = updatedName;
+        isMatchedName = true;
+      }
     }
   }
 

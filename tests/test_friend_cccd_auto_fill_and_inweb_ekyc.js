@@ -163,9 +163,37 @@ async function runTests() {
   assert(upgradeRes.data.user.ekyc_status === 'verified', 'Trạng thái eKYC đạt verified (Mức 2)');
   assert(upgradeRes.data.user.chip_serial && upgradeRes.data.user.chip_serial.startsWith('VN-CHIP'), 'Có số seri chip điện tử ICAO');
 
+  // Test 6: Chính danh hóa Họ tên & Địa chỉ thật của công dân vào C06 (/api/ekyc/sync-citizen-registry)
+  console.log('\n6. Kiểm thử Đồng bộ & Chính danh hóa Họ tên, Địa chỉ thật của công dân vào C06:');
+  const userRealCccd = '037095001234';
+  
+  // Bước 6a: Tra cứu ban đầu (sinh họ tên mẫu)
+  const initialLookup = await makeRequest('POST', '/api/ekyc/nfc-read', { cccd: userRealCccd });
+  assert(initialLookup.status === 200, 'Tra cứu CCCD mới ban đầu HTTP 200');
+  const sampleName = initialLookup.data.citizen.full_name;
+  assert(!!sampleName, `Hệ thống tạm gán tên mẫu: ${sampleName}`);
+
+  // Bước 6b: Công dân nhập và lưu họ tên thật & địa chỉ thật
+  const syncRes = await makeRequest('POST', '/api/ekyc/sync-citizen-registry', {
+    cccd: userRealCccd,
+    full_name: 'NGUYỄN VĂN AN',
+    permanent_address: 'Số 88 Phố Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội'
+  });
+  assert(syncRes.status === 200, 'Đồng bộ hồ sơ thật HTTP 200');
+  assert(syncRes.data.success === true, 'Đồng bộ chính danh thành công');
+  assert(syncRes.data.citizen.full_name === 'NGUYỄN VĂN AN', 'Họ tên được cập nhật thành NGUYỄN VĂN AN');
+  assert(syncRes.data.citizen.permanent_address.includes('Số 88 Phố Triều Khúc'), 'Địa chỉ thường trú được cập nhật chính xác');
+
+  // Bước 6c: Tra cứu lại đảm bảo 100% CSDL C06 đã lưu vĩnh viễn danh tính thật
+  const reLookup = await makeRequest('POST', '/api/ekyc/nfc-read', { cccd: userRealCccd });
+  assert(reLookup.status === 200, 'Tra cứu lại CCCD HTTP 200');
+  assert(reLookup.data.citizen.full_name === 'NGUYỄN VĂN AN', 'Dữ liệu C06 trả về đúng chính xác họ tên thật NGUYỄN VĂN AN');
+  assert(reLookup.data.citizen.permanent_address.includes('Số 88 Phố Triều Khúc'), 'Dữ liệu C06 trả về đúng địa chỉ thật');
+
   // Dọn dẹp
   db.prepare('PRAGMA foreign_keys = OFF').run();
   db.prepare('DELETE FROM users WHERE phone = ? OR cccd = ?').run(testPhone, friendCccd);
+  db.prepare('DELETE FROM national_citizen_registry WHERE cccd IN (?, ?)').run(friendCccd, userRealCccd);
   db.prepare('PRAGMA foreign_keys = ON').run();
 
   console.log('\n========================================================================');

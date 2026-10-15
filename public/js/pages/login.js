@@ -427,8 +427,38 @@ const LoginPage = {
                       </div>
                     </div>
 
+                    <!-- Hộp Chính danh hóa & Hiệu chỉnh thông tin thật -->
+                    <div class="p-3 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 rounded-xl border border-blue-200/90 space-y-2 text-[11px]">
+                      <div class="flex items-center justify-between">
+                        <span class="font-bold text-blue-900 flex items-center gap-1.5">
+                          <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
+                          <span>Chính danh hóa hồ sơ thật của bạn</span>
+                        </span>
+                        <span class="text-[9.5px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">C06 Bảo mật Cấp 4</span>
+                      </div>
+                      <p class="text-slate-600 text-[10.5px] leading-relaxed">
+                        Hệ thống đã giải mã chính xác 100% <b>Tỉnh thành, Giới tính và Năm sinh</b> từ 12 số CCCD của bạn. Do môi trường thử nghiệm chưa kết nối đường truyền mạng mật CPNet và chứng thư số chuyên dụng HSM của Bộ Công An, nếu <b>Họ tên</b> hoặc <b>Địa chỉ</b> mẫu chưa đúng với bạn, bạn có thể chỉnh sửa trực tiếp bên dưới để hệ thống cập nhật chính thức vào CSDL Dân cư:
+                      </p>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <div>
+                          <label class="block font-bold text-slate-700 text-[10px] mb-0.5">Họ và tên thật của bạn *</label>
+                          <input type="text" id="nfc-edit-name" placeholder="VD: NGUYỄN VĂN AN..." class="w-full p-2 rounded-lg border border-slate-300 bg-white font-bold text-xs uppercase text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                        </div>
+                        <div>
+                          <label class="block font-bold text-slate-700 text-[10px] mb-0.5">Địa chỉ thường trú thật của bạn *</label>
+                          <input type="text" id="nfc-edit-address" placeholder="VD: Số 12, Thôn Triều Khúc, Tân Triều..." class="w-full p-2 rounded-lg border border-slate-300 bg-white font-medium text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                        </div>
+                      </div>
+                      <div class="flex justify-end pt-1">
+                        <button type="button" onclick="LoginPage.saveCitizenSync()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                          <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                          <span>Lưu & Đồng bộ thông tin thật vào C06</span>
+                        </button>
+                      </div>
+                    </div>
+
                     <div class="space-y-2 pt-1">
-                      <button type="button" onclick="LoginPage.goToEkycStep(3)" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                      <button type="button" onclick="LoginPage.goToEkycStep(3)" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
                         <i data-lucide="check-circle" class="w-4 h-4 text-emerald-200"></i>
                         <span>Tiếp tục: Xác thực SĐT & Tạo mật khẩu (Vào web sẽ quét NFC & Mặt)</span>
                         <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
@@ -775,7 +805,15 @@ const LoginPage = {
     lucide.createIcons();
   },
 
-  goToEkycStep(step) {
+  async goToEkycStep(step) {
+    if (this.scannedCitizen) {
+      const editName = document.getElementById('nfc-edit-name')?.value?.trim();
+      const editAddr = document.getElementById('nfc-edit-address')?.value?.trim();
+      if (editName && (editName.toUpperCase() !== (this.scannedCitizen.full_name || '').toUpperCase() || (editAddr && editAddr !== this.scannedCitizen.permanent_address))) {
+        await this.saveCitizenSync(true);
+      }
+    }
+
     this.ekycStep = step;
 
     const s1 = document.getElementById('ekyc-step-1');
@@ -848,6 +886,50 @@ const LoginPage = {
     this.handleNfcScan();
   },
 
+  async saveCitizenSync(silent = false) {
+    if (!this.scannedCitizen) {
+      if (!silent) Modals.showToast('Vui lòng nhập số CCCD trước', 'error');
+      return false;
+    }
+    const editName = document.getElementById('nfc-edit-name')?.value?.trim();
+    const editAddr = document.getElementById('nfc-edit-address')?.value?.trim();
+    if (!editName) {
+      if (!silent) Modals.showToast('Vui lòng nhập họ và tên thật của bạn', 'error');
+      return false;
+    }
+    try {
+      const res = await API.syncCitizenRegistry({
+        cccd: this.scannedCitizen.cccd,
+        full_name: editName,
+        dob: this.scannedCitizen.dob,
+        gender: this.scannedCitizen.gender,
+        birthplace: this.scannedCitizen.birthplace,
+        hometown: this.scannedCitizen.hometown,
+        permanent_address: editAddr || this.scannedCitizen.permanent_address
+      });
+      if (res && res.citizen) {
+        this.scannedCitizen = res.citizen;
+        const nameCard = document.getElementById('nfc-card-name');
+        if (nameCard) nameCard.innerText = res.citizen.full_name;
+        const addrCard = document.getElementById('nfc-card-address');
+        if (addrCard) addrCard.innerText = res.citizen.permanent_address;
+        const nameInput = document.getElementById('nfc-name-input');
+        if (nameInput) nameInput.value = res.citizen.full_name;
+        const s2Name = document.getElementById('step-2-citizen-name');
+        if (s2Name) s2Name.innerText = res.citizen.full_name;
+        const finalName = document.getElementById('final-citizen-name');
+        if (finalName) finalName.innerText = res.citizen.full_name;
+        const finalAddr = document.getElementById('final-citizen-address');
+        if (finalAddr) finalAddr.innerText = res.citizen.permanent_address;
+        if (!silent) Modals.showToast(`Đã đồng bộ chính danh cho công dân: ${res.citizen.full_name}`, 'success');
+        return true;
+      }
+    } catch(err) {
+      if (!silent) Modals.showToast(err.message, 'error');
+      return false;
+    }
+  },
+
   async handleNfcScan() {
     const cccdInput = document.getElementById('nfc-cccd-input');
     const nameInput = document.getElementById('nfc-name-input');
@@ -868,7 +950,8 @@ const LoginPage = {
         btnText.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang kết nối CSDL Dân cư Quốc gia (C06)...`;
       }
 
-      const res = await API.readNfcChip(cccd);
+      const enteredName = nameInput?.value?.trim() || null;
+      const res = await API.readNfcChip(cccd, enteredName);
       this.scannedCitizen = res.citizen;
 
       if (nameInput) {
@@ -899,6 +982,11 @@ const LoginPage = {
         if (htEl) htEl.innerText = res.citizen.hometown || '...';
         
         document.getElementById('nfc-card-address').innerText = res.citizen.permanent_address;
+
+        const editNameEl = document.getElementById('nfc-edit-name');
+        const editAddrEl = document.getElementById('nfc-edit-address');
+        if (editNameEl) editNameEl.value = res.citizen.full_name;
+        if (editAddrEl) editAddrEl.value = res.citizen.permanent_address;
       }
 
       lucide.createIcons();

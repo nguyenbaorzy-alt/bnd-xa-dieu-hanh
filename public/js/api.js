@@ -136,10 +136,10 @@ const API = {
   },
 
   // eKYC CCCD Gắn Chip & Sinh trắc học khuôn mặt AI
-  async readNfcChip(cccd) {
+  async readNfcChip(cccd, full_name = null) {
     return this.request('/api/ekyc/nfc-read', {
       method: 'POST',
-      body: JSON.stringify({ cccd })
+      body: JSON.stringify({ cccd, full_name })
     });
   },
 
@@ -159,6 +159,13 @@ const API = {
 
   async getDemoCitizens() {
     return this.request('/api/ekyc/demo-citizens');
+  },
+
+  async syncCitizenRegistry(data) {
+    return this.request('/api/ekyc/sync-citizen-registry', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   },
 
   async upgradeCitizenEkyc(data) {

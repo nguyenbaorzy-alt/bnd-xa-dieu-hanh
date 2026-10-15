@@ -48,15 +48,15 @@ ekycRouter.post('/national-lookup', (req, res) => {
 /**
  * 2. API Đọc thẻ CCCD gắn chip qua NFC (Mô phỏng ICAO 9303 / VNeID)
  * POST /api/ekyc/nfc-read
- * Body: { cccd }
+ * Body: { cccd, full_name }
  */
 ekycRouter.post('/nfc-read', (req, res) => {
-  const { cccd } = req.body;
+  const { cccd, full_name } = req.body;
   if (!cccd) {
     return res.status(400).json({ error: 'Vui lòng cung cấp số CCCD hoặc chạm thẻ CCCD gắn chip vào vùng NFC để quét' });
   }
 
-  const lookupResult = lookupNationalRegistry(cccd);
+  const lookupResult = lookupNationalRegistry(cccd, full_name);
   if (!lookupResult.success) {
     return res.status(404).json({ error: lookupResult.error });
   }
@@ -282,6 +282,63 @@ ekycRouter.post('/upgrade-citizen-ekyc', (req, res) => {
     success: true,
     message: 'Nâng cấp định danh điện tử Mức 2 (VNeID eKYC) thành công!',
     user: updatedUser
+  });
+});
+
+/**
+ * 6. API Đồng bộ / Khai báo hồ sơ chính danh thật của công dân vào CSDL Dân cư Quốc gia (C06)
+ * POST /api/ekyc/sync-citizen-registry
+ * Body: { cccd, full_name, dob, gender, birthplace, hometown, permanent_address }
+ */
+ekycRouter.post('/sync-citizen-registry', (req, res) => {
+  const { cccd, full_name, dob, gender, birthplace, hometown, permanent_address } = req.body || {};
+  if (!cccd || String(cccd).trim().length !== 12) {
+    return res.status(400).json({ error: 'Số CCCD phải gồm đúng 12 chữ số' });
+  }
+  if (!full_name || !String(full_name).trim()) {
+    return res.status(400).json({ error: 'Vui lòng nhập họ và tên thật của công dân' });
+  }
+
+  const parsed = parseCccd(cccd);
+  if (!parsed.valid) {
+    return res.status(400).json({ error: parsed.error });
+  }
+
+  const cleanCccd = parsed.cccd;
+  const cleanName = String(full_name).trim().toUpperCase();
+  const cleanDob = dob || `${parsed.birth_year}-01-01`;
+  const cleanGender = gender || parsed.gender;
+  const cleanBirthplace = birthplace || `Bệnh viện Đa khoa Tỉnh ${parsed.province}`;
+  const cleanHometown = hometown || `${parsed.province}`;
+  const cleanAddress = permanent_address || `Địa chỉ thường trú, ${parsed.province}`;
+  const chipSerial = `VN-CHIP-${cleanCccd.slice(4)}`;
+  const portraitUrl = cleanGender === 'Nữ'
+    ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80'
+    : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80';
+
+  const existing = db.prepare('SELECT id FROM national_citizen_registry WHERE cccd = ?').get(cleanCccd);
+  if (existing) {
+    db.prepare(`
+      UPDATE national_citizen_registry 
+      SET full_name = ?, dob = ?, gender = ?, birthplace = ?, hometown = ?, permanent_address = ?, chip_serial = ?, portrait_url = ?
+      WHERE cccd = ?
+    `).run(cleanName, cleanDob, cleanGender, cleanBirthplace, cleanHometown, cleanAddress, chipSerial, portraitUrl, cleanCccd);
+  } else {
+    db.prepare(`
+      INSERT INTO national_citizen_registry (
+        cccd, full_name, dob, gender, ethnicity, birthplace, hometown, permanent_address,
+        issue_date, expiry_date, chip_serial, portrait_url
+      ) VALUES (?, ?, ?, ?, 'Kinh', ?, ?, ?, '2022-05-15', '2038-05-15', ?, ?)
+    `).run(cleanCccd, cleanName, cleanDob, cleanGender, cleanBirthplace, cleanHometown, cleanAddress, chipSerial, portraitUrl);
+  }
+
+  logAudit(null, 'anonymous', 'citizen', 'NATIONAL_REGISTRY_SYNC_CITIZEN', 'national_citizen_registry', cleanCccd, `Đồng bộ hồ sơ công dân vào C06: ${cleanName} (${cleanCccd})`, req.ip);
+
+  const updated = db.prepare('SELECT * FROM national_citizen_registry WHERE cccd = ?').get(cleanCccd);
+  res.json({
+    success: true,
+    message: `Đã đồng bộ hồ sơ chính danh cho công dân ${cleanName} (${cleanCccd}) vào Cơ sở dữ liệu Quốc gia về Dân cư (C06 - BCA) thành công!`,
+    citizen: updated
   });
 });
 
