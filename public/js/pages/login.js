@@ -272,42 +272,63 @@ const LoginPage = {
                   </div>
                 </div>
 
-                <!-- BƯỚC 1: QUÉT THẺ NFC CHIP CCCD & TRA CỨU CSDL DÂN CƯ -->
+                <!-- BƯỚC 1: QUÉT THẺ NFC CHIP CCCD & TRA CỨU CSDL DÂN CƯ QUỐC GIA -->
                 <div id="ekyc-step-1" class="space-y-3.5">
                   
-                  <!-- NFC Reader Touch Area -->
-                  <div class="p-4 rounded-2xl bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white text-center relative overflow-hidden shadow-md">
+                  <!-- Cổng CSDL Dân cư Quốc gia C06 & NFC Reader Banner -->
+                  <div class="p-4 rounded-2xl bg-gradient-to-br from-blue-950 via-indigo-900 to-slate-900 text-white text-center relative overflow-hidden shadow-lg border border-indigo-800/80">
                     <div class="relative z-10 space-y-2">
+                      <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold text-amber-300 tracking-wider uppercase">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>CỔNG TRA CỨU CSDL DÂN CƯ QUỐC GIA (BỘ CÔNG AN C06)</span>
+                      </div>
                       <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-slate-950 flex items-center justify-center mx-auto text-2xl font-bold shadow-lg animate-pulse">
                         <i data-lucide="nfc" class="w-7 h-7"></i>
                       </div>
                       <div>
-                        <div class="font-bold text-sm text-amber-300">VÙNG CẢM ỨNG ĐỌC NFC CHIP CCCD</div>
-                        <p class="text-[11px] text-blue-200 max-w-sm mx-auto mt-0.5">
-                          Đặt thẻ CCCD sát vào mặt lưng thiết bị hoặc chọn công dân mẫu để nạp dữ liệu chip chuẩn ICAO 9303
+                        <div class="font-bold text-sm text-white">VÙNG CẢM ỨNG ĐỌC CHIP CCCD & LIÊN THÔNG DVCQG</div>
+                        <p class="text-[11px] text-blue-200 max-w-md mx-auto mt-0.5">
+                          Tra cứu chính xác Họ tên, Ngày tháng năm sinh, <b>Nơi sinh (Khai sinh)</b>, Quê quán và Thường trú của công dân trên toàn quốc qua Trục liên thông NDXP / LGSP
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Quick Demo Citizen Picker -->
-                  <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-600">
-                      <span>CHỌN THẺ CCCD MẪU ĐỂ QUÉT NHANH:</span>
-                      <span class="text-blue-600">CSDL Dân cư Xã Tân Triều</span>
+                  <!-- Danh bạ thử nghiệm công dân toàn quốc (63 Tỉnh Thành) -->
+                  <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-700">
+                      <span class="flex items-center gap-1">
+                        <span>🇻🇳 DANH BẠ CÔNG DÂN MẪU TOÀN QUỐC (ĐẠI DIỆN CÁC TỈNH THÀNH):</span>
+                      </span>
+                      <span class="text-blue-700 font-mono">DVCQG • C06 BCA</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px]">
+                      <button type="button" onclick="LoginPage.selectDemoCitizen('001195000007', 'Vũ Thị Lan')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
+                        <b>Vũ Thị Lan</b> <span class="text-blue-600 block font-mono text-[9px]">001195000007 (Hà Nội)</span>
+                      </button>
                       <button type="button" onclick="LoginPage.selectDemoCitizen('001095018273', 'Hoàng Gia Bảo')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Hoàng Gia Bảo</b> <span class="text-slate-400 font-mono">001095018273</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('001199014528', 'Lê Thu Trang')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Lê Thu Trang</b> <span class="text-slate-400 font-mono">001199014528</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('001092005431', 'Đỗ Thành Nam')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Đỗ Thành Nam</b> <span class="text-slate-400 font-mono">001092005431</span>
+                        <b>Hoàng Gia Bảo</b> <span class="text-blue-600 block font-mono text-[9px]">001095018273 (Hà Nội)</span>
                       </button>
                       <button type="button" onclick="LoginPage.selectDemoCitizen('079198024519', 'Trần Thị Thu Thảo')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Trần Thị Thu Thảo</b> <span class="text-slate-400 font-mono">079198024519</span>
+                        <b>Trần Thị Thu Thảo</b> <span class="text-blue-600 block font-mono text-[9px]">079198024519 (TP.HCM)</span>
+                      </button>
+                      <button type="button" onclick="LoginPage.selectDemoCitizen('079096015682', 'Nguyễn Minh Khang')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
+                        <b>Nguyễn Minh Khang</b> <span class="text-blue-600 block font-mono text-[9px]">079096015682 (TP.HCM)</span>
+                      </button>
+                      <button type="button" onclick="LoginPage.selectDemoCitizen('048094008765', 'Phan Thanh Tùng')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
+                        <b>Phan Thanh Tùng</b> <span class="text-blue-600 block font-mono text-[9px]">048094008765 (Đà Nẵng)</span>
+                      </button>
+                      <button type="button" onclick="LoginPage.selectDemoCitizen('038092019842', 'Lê Đình Trọng')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
+                        <b>Lê Đình Trọng</b> <span class="text-blue-600 block font-mono text-[9px]">038092019842 (Thanh Hóa)</span>
+                      </button>
+                      <button type="button" onclick="LoginPage.selectDemoCitizen('040093017654', 'Nguyễn Hữu Đạt')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
+                        <b>Nguyễn Hữu Đạt</b> <span class="text-blue-600 block font-mono text-[9px]">040093017654 (Nghệ An)</span>
+                      </button>
+                      <button type="button" onclick="LoginPage.selectDemoCitizen('046196008123', 'Trần Nguyễn Hương Giang')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
+                        <b>Trần Hương Giang</b> <span class="text-blue-600 block font-mono text-[9px]">046196008123 (Thừa Thiên Huế)</span>
+                      </button>
+                      <button type="button" onclick="LoginPage.selectDemoCitizen('092095012390', 'Huỳnh Tấn Phát')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
+                        <b>Huỳnh Tấn Phát</b> <span class="text-blue-600 block font-mono text-[9px]">092095012390 (Cần Thơ)</span>
                       </button>
                     </div>
                   </div>
@@ -315,47 +336,59 @@ const LoginPage = {
                   <!-- CCCD & Name Inputs -->
                   <div class="space-y-2.5">
                     <div>
-                      <label class="block font-bold text-slate-700 mb-1">Số Căn cước công dân (12 số gắn chip) *</label>
+                      <div class="flex items-center justify-between mb-1 text-xs">
+                        <label class="font-bold text-slate-700">Số Căn cước công dân (12 số gắn chip) *</label>
+                        <span class="text-[10px] text-blue-700 font-semibold">Tra cứu toàn quốc (63 tỉnh thành)</span>
+                      </div>
                       <div class="relative">
-                        <input type="text" id="nfc-cccd-input" placeholder="Nhập 12 chữ số CCCD (VD: 001095018273)..." maxlength="12" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 font-mono font-bold text-xs tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                        <input type="text" id="nfc-cccd-input" placeholder="Nhập 12 chữ số CCCD (VD: 038092019842)..." maxlength="12" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 font-mono font-bold text-xs tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
                         <i data-lucide="credit-card" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                       </div>
                     </div>
 
                     <div>
-                      <label class="block font-bold text-slate-700 mb-1">Họ và tên ghi trên thẻ CCCD *</label>
+                      <div class="flex items-center justify-between mb-1 text-xs">
+                        <label class="font-bold text-slate-700">Họ và tên ghi trên thẻ CCCD *</label>
+                        <span class="text-[10px] text-rose-600 font-semibold">Phải khớp với C06</span>
+                      </div>
                       <div class="relative">
-                        <input type="text" id="nfc-name-input" placeholder="VD: HOÀNG GIA BẢO" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 uppercase font-bold text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                        <input type="text" id="nfc-name-input" placeholder="VD: LÊ ĐÌNH TRỌNG" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 uppercase font-bold text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
                         <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                       </div>
                     </div>
 
                     <button type="button" id="btn-nfc-scan" onclick="LoginPage.handleNfcScan()" class="w-full p-3 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-2">
                       <i data-lucide="scan-line" class="w-4 h-4 text-amber-300"></i>
-                      <span id="btn-nfc-scan-text">Chạm thẻ & Đọc chip NFC CCCD</span>
+                      <span id="btn-nfc-scan-text">Tra cứu CSDL Dân cư Quốc gia & Đọc Chip NFC</span>
                     </button>
                   </div>
 
-                  <!-- Kết quả đọc chip NFC thẻ CCCD (Hiển thị sau khi quét thành công) -->
-                  <div id="nfc-result-card" class="hidden p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/90 via-emerald-50/50 to-white border border-amber-200 space-y-3">
-                    <div class="flex items-center justify-between text-[11px] pb-2 border-b border-amber-200/80">
+                  <!-- Kết quả thẩm định C06 Dân cư Quốc gia (Hiển thị sau khi đối soát thành công) -->
+                  <div id="nfc-result-card" class="hidden p-4 rounded-2xl bg-gradient-to-r from-amber-50/90 via-emerald-50/60 to-white border border-amber-300/80 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between text-[11px] pb-2 border-b border-amber-200">
                       <span class="font-bold text-emerald-800 flex items-center gap-1.5">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
-                        <span>ĐÃ ĐỌC CHIP NFC HỢP LỆ (ICAO Doc 9303)</span>
+                        <i data-lucide="badge-check" class="w-4 h-4 text-emerald-600"></i>
+                        <span>ĐÃ ĐỐI SOÁT TRỰC TUYẾN: C06 BỘ CÔNG AN</span>
                       </span>
                       <span id="nfc-chip-serial" class="font-mono text-[10px] text-slate-500">CHIP: VN-CHIP-...</span>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                      <div class="w-16 h-20 rounded-xl overflow-hidden border border-slate-300 bg-slate-100 shrink-0 shadow-xs">
+                    <div class="flex items-start gap-3">
+                      <div class="w-18 h-24 rounded-xl overflow-hidden border border-slate-300 bg-slate-100 shrink-0 shadow-xs">
                         <img id="nfc-card-portrait" src="" alt="Ảnh chip CCCD" class="w-full h-full object-cover">
                       </div>
 
                       <div class="space-y-1 text-[11px] flex-1 min-w-0">
-                        <div class="font-black text-slate-900 text-xs truncate" id="nfc-card-name">HỌ VÀ TÊN</div>
-                        <div class="text-slate-600">Số CCCD: <b class="font-mono text-blue-900" id="nfc-card-cccd">001...</b></div>
-                        <div class="text-slate-600" id="nfc-card-dob-gender">Ngày sinh: ... • Nam</div>
-                        <div class="text-slate-500 truncate" id="nfc-card-address">Thường trú: ...</div>
+                        <div class="font-black text-slate-900 text-sm truncate" id="nfc-card-name">HỌ VÀ TÊN</div>
+                        <div class="text-slate-700">Số CCCD: <b class="font-mono text-blue-900 font-black" id="nfc-card-cccd">001...</b></div>
+                        <div class="text-slate-700">Ngày sinh: <b class="text-slate-900" id="nfc-card-dob">...</b> • Giới tính: <span id="nfc-card-gender">...</span></div>
+                        <div class="text-slate-700 leading-snug"><b>Nơi sinh / Khai sinh:</b> <span class="text-indigo-950 font-semibold" id="nfc-card-birthplace">...</span></div>
+                        <div class="text-slate-700 truncate">Quê quán: <span id="nfc-card-hometown">...</span></div>
+                        <div class="text-slate-600 truncate">Thường trú: <span id="nfc-card-address">...</span></div>
+                        <div class="pt-1 flex items-center gap-1 text-[10px] text-emerald-700 font-bold">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>Tình trạng: CÒN SỐNG • CHỨNG THƯ SỐ C06 CHÍNH HÃNG</span>
+                        </div>
                       </div>
                     </div>
 
@@ -459,18 +492,21 @@ const LoginPage = {
                 <div id="ekyc-step-3" class="space-y-3.5 hidden">
                   
                   <!-- Citizen Profile Summary Badge -->
-                  <div class="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 text-emerald-950 space-y-1">
+                  <div class="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-300 text-emerald-950 space-y-1.5 shadow-2xs">
                     <div class="flex items-center justify-between text-[11px] font-bold">
                       <span class="text-emerald-900 flex items-center gap-1">
                         <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600"></i>
                         <span id="final-citizen-name">HOÀNG GIA BẢO</span>
                       </span>
                       <span class="text-[9px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-black">
-                        ĐÃ XÁC THỰC eKYC
+                        ĐÃ XÁC THỰC C06 eKYC
                       </span>
                     </div>
-                    <div class="text-[10px] text-emerald-800">
-                      CCCD: <b class="font-mono" id="final-citizen-cccd">...</b> • Thường trú: <span id="final-citizen-address">...</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px] text-emerald-800">
+                      <div>CCCD: <b class="font-mono" id="final-citizen-cccd">...</b></div>
+                      <div>Ngày sinh: <b id="final-citizen-dob">...</b></div>
+                      <div class="sm:col-span-2">Nơi sinh (Khai sinh): <b class="text-indigo-950 font-bold" id="final-citizen-birthplace">...</b></div>
+                      <div class="sm:col-span-2">Thường trú: <span id="final-citizen-address">...</span></div>
                     </div>
                   </div>
 
@@ -739,6 +775,10 @@ const LoginPage = {
       if (this.scannedCitizen) {
         document.getElementById('final-citizen-name').innerText = this.scannedCitizen.full_name;
         document.getElementById('final-citizen-cccd').innerText = this.scannedCitizen.cccd;
+        const dobEl = document.getElementById('final-citizen-dob');
+        if (dobEl) dobEl.innerText = this.scannedCitizen.dob || '...';
+        const bpEl = document.getElementById('final-citizen-birthplace');
+        if (bpEl) bpEl.innerText = this.scannedCitizen.birthplace || '...';
         document.getElementById('final-citizen-address').innerText = this.scannedCitizen.permanent_address || 'Tân Triều, Hà Nội';
       }
     }
@@ -771,7 +811,7 @@ const LoginPage = {
     try {
       if (btn) {
         btn.disabled = true;
-        btnText.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang kết nối NFC chip...`;
+        btnText.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang kết nối CSDL Dân cư Quốc gia (C06)...`;
       }
 
       const res = await API.readNfcChip(cccd);
@@ -784,7 +824,7 @@ const LoginPage = {
       if (res.already_registered) {
         Modals.showToast(`Số CCCD này đã được cấp tài khoản trên hệ thống (${res.existing_account?.phone_masked}). Vui lòng đăng nhập!`, 'warning');
       } else {
-        Modals.showToast(`Quét chip NFC thành công: ${res.citizen.full_name}`, 'success');
+        Modals.showToast(`Thẩm định dữ liệu công dân thành công: ${res.citizen.full_name} (Nơi sinh: ${res.citizen.birthplace})`, 'success');
       }
 
       // Điền thông tin vào card kết quả
@@ -794,8 +834,17 @@ const LoginPage = {
         document.getElementById('nfc-card-portrait').src = res.citizen.portrait_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400';
         document.getElementById('nfc-card-name').innerText = res.citizen.full_name;
         document.getElementById('nfc-card-cccd').innerText = res.citizen.cccd;
-        document.getElementById('nfc-card-dob-gender').innerText = `Ngày sinh: ${res.citizen.dob} • ${res.citizen.gender}`;
-        document.getElementById('nfc-card-address').innerText = `Thường trú: ${res.citizen.permanent_address}`;
+        
+        const dobEl = document.getElementById('nfc-card-dob');
+        if (dobEl) dobEl.innerText = res.citizen.dob;
+        const genderEl = document.getElementById('nfc-card-gender');
+        if (genderEl) genderEl.innerText = res.citizen.gender;
+        const bpEl = document.getElementById('nfc-card-birthplace');
+        if (bpEl) bpEl.innerText = res.citizen.birthplace || 'Đang cập nhật';
+        const htEl = document.getElementById('nfc-card-hometown');
+        if (htEl) htEl.innerText = res.citizen.hometown || '...';
+        
+        document.getElementById('nfc-card-address').innerText = res.citizen.permanent_address;
       }
 
       lucide.createIcons();
@@ -805,7 +854,7 @@ const LoginPage = {
     } finally {
       if (btn) {
         btn.disabled = false;
-        btnText.innerText = 'Chạm thẻ & Đọc chip NFC CCCD';
+        btnText.innerText = 'Tra cứu CSDL Dân cư Quốc gia & Đọc Chip NFC';
       }
     }
   },

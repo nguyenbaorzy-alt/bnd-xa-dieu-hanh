@@ -117,6 +117,13 @@ const API = {
     });
   },
 
+  async lookupNationalRegistry(cccd, full_name = null) {
+    return this.request('/api/ekyc/national-lookup', {
+      method: 'POST',
+      body: JSON.stringify({ cccd, full_name })
+    });
+  },
+
   async getDemoCitizens() {
     return this.request('/api/ekyc/demo-citizens');
   },
@@ -203,6 +210,14 @@ const API = {
     return this.request(`/api/security/ip-rules/${id}`, {
       method: 'DELETE'
     });
+  },
+
+  async inspectIpThreat(ip) {
+    return this.request(`/api/security/ip-inspect/${encodeURIComponent(ip)}`);
+  },
+
+  async getMyIp() {
+    return this.request('/api/security/my-ip');
   },
 
   async getMe() {

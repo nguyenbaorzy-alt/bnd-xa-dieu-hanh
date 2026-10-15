@@ -48,7 +48,7 @@ const CitizenPortalPage = {
                   <span class="text-[9px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-black">XÁC THỰC CCCD GẮN CHIP</span>
                 </div>
                 <div class="text-[11px] text-emerald-800">
-                  Họ tên: <b>${user.full_name}</b> • CCCD: <b class="font-mono">${user.cccd}</b> • Nơi thường trú: <b>${user.permanent_address || 'Xã Tân Triều, Thanh Trì, Hà Nội'}</b>
+                  Họ tên: <b>${user.full_name}</b> • CCCD: <b class="font-mono">${user.cccd}</b> ${user.birthplace ? `• Nơi sinh (Khai sinh): <b>${user.birthplace}</b>` : ''} • Thường trú: <b>${user.permanent_address || 'Xã Tân Triều, Thanh Trì, Hà Nội'}</b>
                 </div>
               </div>
             </div>

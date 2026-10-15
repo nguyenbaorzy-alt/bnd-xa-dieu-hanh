@@ -102,19 +102,38 @@ router.post('/captcha/verify', (req, res) => {
   });
 });
 
+const { inspectIpThreat, resolveIpDetails } = require('../services/ip_intel');
+
 // ==========================================
 // 2. PHÂN HỆ QUẢN TRỊ AN NINH MẠNG & QUẢN LÝ IP (B-FIREWALL STUDIO)
 // ==========================================
 
-// Thống kê an ninh mạng tổng thể
+// Tra cứu IP hiện tại của client
+router.get('/my-ip', (req, res) => {
+  const ip = getClientIp(req);
+  const inspection = inspectIpThreat(ip);
+  res.json({
+    ip,
+    ...inspection
+  });
+});
+
+// Tra cứu Chuyên Sâu Địa Chỉ IP (Deep Forensic Threat Inspection API)
+router.get('/ip-inspect/:ip', (req, res) => {
+  const targetIp = (req.params.ip || getClientIp(req)).trim();
+  const report = inspectIpThreat(targetIp);
+  res.json(report);
+});
+
+// Thống kê an ninh mạng tổng thể & Phân tích dải mạng
 router.get('/stats', (req, res) => {
   const totalLogs = db.prepare('SELECT COUNT(*) as count FROM ip_access_logs').get().count;
   const blockedLogs = db.prepare('SELECT COUNT(*) as count FROM ip_access_logs WHERE is_blocked = 1').get().count;
   const activeBlacklist = db.prepare("SELECT COUNT(*) as count FROM ip_rules WHERE rule_type = 'blacklist' AND is_active = 1").get().count;
   const suspiciousToday = db.prepare("SELECT COUNT(*) as count FROM ip_access_logs WHERE threat_level IN ('suspicious', 'danger') AND created_at >= date('now', 'localtime')").get().count;
 
-  // Lấy top 5 IP truy cập nhiều nhất
-  const topIps = db.prepare(`
+  // Lấy top 8 IP truy cập nhiều nhất kèm phân tích ISP
+  const rawTopIps = db.prepare(`
     SELECT ip_address, COUNT(*) as hits, 
            MAX(created_at) as last_seen,
            SUM(CASE WHEN is_blocked = 1 THEN 1 ELSE 0 END) as blocked_count,
@@ -123,6 +142,15 @@ router.get('/stats', (req, res) => {
     GROUP BY ip_address
     ORDER BY hits DESC LIMIT 8
   `).all();
+
+  const topIps = rawTopIps.map(item => {
+    const geo = resolveIpDetails(item.ip_address);
+    return {
+      ...item,
+      isp: geo.isp,
+      location: geo.location
+    };
+  });
 
   // Lấy các dải IP đang bị chặn
   const blacklistedList = db.prepare(`
@@ -146,7 +174,7 @@ router.get('/stats', (req, res) => {
   });
 });
 
-// Lấy danh sách lịch sử truy cập IP gần đây
+// Lấy danh sách lịch sử truy cập IP gần đây có làm giàu thông tin địa lý & nhà mạng
 router.get('/ip-logs', (req, res) => {
   const { ip, threat, blocked, limit = 50 } = req.query;
 
@@ -170,7 +198,18 @@ router.get('/ip-logs', (req, res) => {
   params.push(parseInt(limit, 10));
 
   const logs = db.prepare(sql).all(...params);
-  res.json(logs);
+  
+  // Làm giàu dữ liệu ISP & Vị trí cho từng IP trong log
+  const enrichedLogs = logs.map(l => {
+    const geo = resolveIpDetails(l.ip_address);
+    return {
+      ...l,
+      isp: geo.isp,
+      location: geo.location
+    };
+  });
+
+  res.json(enrichedLogs);
 });
 
 // Lấy danh sách quy tắc IP (Blacklist & Whitelist)

@@ -932,12 +932,14 @@ function runSeed() {
 
   // 13. Cơ sở dữ liệu Quốc gia về Dân cư & Căn cước công dân gắn chip NFC
   const citizensData = [
+    // --- KHU VỰC HÀ NỘI ---
     {
       cccd: '001195000007',
       full_name: 'Vũ Thị Lan',
       dob: '1995-10-15',
       gender: 'Nữ',
       ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Đa khoa Thanh Trì, TP. Hà Nội',
       hometown: 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       permanent_address: 'Số 42 Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       issue_date: '2021-05-10',
@@ -951,6 +953,7 @@ function runSeed() {
       dob: '1998-03-20',
       gender: 'Nam',
       ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Phụ sản Hà Nội',
       hometown: 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       permanent_address: 'Đội 3 Thôn Yên Xá, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       issue_date: '2022-01-15',
@@ -964,6 +967,7 @@ function runSeed() {
       dob: '1988-06-12',
       gender: 'Nam',
       ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Bạch Mai, TP. Hà Nội',
       hometown: 'Huyện Thanh Trì, TP. Hà Nội',
       permanent_address: 'Số 12 Ngõ 66 Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       issue_date: '2021-08-20',
@@ -977,6 +981,7 @@ function runSeed() {
       dob: '1975-09-02',
       gender: 'Nam',
       ethnicity: 'Kinh',
+      birthplace: 'Trạm Y tế Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       hometown: 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       permanent_address: 'Thôn Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       issue_date: '2021-04-18',
@@ -990,6 +995,7 @@ function runSeed() {
       dob: '1995-11-28',
       gender: 'Nam',
       ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Bạch Mai, TP. Hà Nội',
       hometown: 'Huyện Thanh Trì, TP. Hà Nội',
       permanent_address: 'Số 88 Đường Chiến Thắng, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       issue_date: '2022-04-12',
@@ -1003,6 +1009,7 @@ function runSeed() {
       dob: '1999-07-14',
       gender: 'Nữ',
       ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Phụ sản Trung ương, Hà Nội',
       hometown: 'Huyện Thanh Trì, TP. Hà Nội',
       permanent_address: 'Phòng 608 Chung cư Eco Green, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       issue_date: '2023-08-05',
@@ -1016,6 +1023,7 @@ function runSeed() {
       dob: '1992-12-05',
       gender: 'Nam',
       ethnicity: 'Kinh',
+      birthplace: 'Trung tâm Y tế Huyện Thường Tín, TP. Hà Nội',
       hometown: 'Huyện Thường Tín, TP. Hà Nội',
       permanent_address: 'Số 19 Ngõ 111 Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
       issue_date: '2021-11-19',
@@ -1023,12 +1031,15 @@ function runSeed() {
       chip_serial: 'VN-CHIP-92005431',
       portrait_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80'
     },
+
+    // --- KHU VỰC TP. HỒ CHÍ MINH (079) ---
     {
       cccd: '079198024519',
       full_name: 'Trần Thị Thu Thảo',
       dob: '1998-04-22',
       gender: 'Nữ',
       ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Từ Dũ, TP. Hồ Chí Minh',
       hometown: 'Quận 1, TP. Hồ Chí Minh',
       permanent_address: 'Số 15 Cù Lao, Phường 2, Quận Phú Nhuận, TP. Hồ Chí Minh',
       issue_date: '2022-09-10',
@@ -1037,23 +1048,142 @@ function runSeed() {
       portrait_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80'
     },
     {
+      cccd: '079096015682',
+      full_name: 'Nguyễn Minh Khang',
+      dob: '1996-09-18',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Hùng Vương, TP. Hồ Chí Minh',
+      hometown: 'Quận 3, TP. Hồ Chí Minh',
+      permanent_address: 'Số 245 Cách Mạng Tháng 8, Phường 4, Quận 3, TP. Hồ Chí Minh',
+      issue_date: '2021-10-15',
+      expiry_date: '2036-09-18',
+      chip_serial: 'VN-CHIP-96015682',
+      portrait_url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&auto=format&fit=crop&q=80'
+    },
+
+    // --- KHU VỰC HẢI PHÒNG (031) ---
+    {
       cccd: '031093011248',
       full_name: 'Lê Hoàng Long',
       dob: '1993-08-16',
       gender: 'Nam',
       ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Phụ sản Hải Phòng',
       hometown: 'Quận Hồng Bàng, TP. Hải Phòng',
       permanent_address: 'Số 24 Đinh Tiên Hoàng, Phường Hoàng Văn Thụ, Quận Hồng Bàng, TP. Hải Phòng',
       issue_date: '2021-06-30',
       expiry_date: '2033-08-16',
       chip_serial: 'VN-CHIP-93011248',
       portrait_url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80'
+    },
+
+    // --- KHU VỰC ĐÀ NẴNG (048) ---
+    {
+      cccd: '048094008765',
+      full_name: 'Phan Thanh Tùng',
+      dob: '1994-05-12',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Phụ sản - Nhi Đà Nẵng',
+      hometown: 'Quận Hải Châu, TP. Đà Nẵng',
+      permanent_address: 'Số 102 Lê Lợi, Phường Thạch Thang, Quận Hải Châu, TP. Đà Nẵng',
+      issue_date: '2021-12-08',
+      expiry_date: '2034-05-12',
+      chip_serial: 'VN-CHIP-94008765',
+      portrait_url: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=400&auto=format&fit=crop&q=80'
+    },
+
+    // --- KHU VỰC CẦN THƠ (092) ---
+    {
+      cccd: '092095012390',
+      full_name: 'Huỳnh Tấn Phát',
+      dob: '1995-03-03',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Đa khoa TP. Cần Thơ',
+      hometown: 'Quận Ninh Kiều, TP. Cần Thơ',
+      permanent_address: 'Số 35 Đại lộ Hòa Bình, Phường Tân An, Quận Ninh Kiều, TP. Cần Thơ',
+      issue_date: '2022-03-22',
+      expiry_date: '2035-03-03',
+      chip_serial: 'VN-CHIP-95012390',
+      portrait_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80'
+    },
+
+    // --- KHU VỰC THANH HÓA (038) ---
+    {
+      cccd: '038092019842',
+      full_name: 'Lê Đình Trọng',
+      dob: '1992-08-19',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Đa khoa Huyện Hoằng Hóa, Tỉnh Thanh Hóa',
+      hometown: 'Xã Hoằng Lộc, Huyện Hoằng Hóa, Tỉnh Thanh Hóa',
+      permanent_address: 'Thôn Bột Thượng, Xã Hoằng Lộc, Huyện Hoằng Hóa, Tỉnh Thanh Hóa',
+      issue_date: '2021-09-14',
+      expiry_date: '2032-08-19',
+      chip_serial: 'VN-CHIP-92019842',
+      portrait_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80'
+    },
+
+    // --- KHU VỰC NGHỆ AN (040) ---
+    {
+      cccd: '040093017654',
+      full_name: 'Nguyễn Hữu Đạt',
+      dob: '1993-10-09',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Đa khoa TP. Vinh, Tỉnh Nghệ An',
+      hometown: 'Huyện Nam Đàn, Tỉnh Nghệ An',
+      permanent_address: 'Số 72 Quang Trung, Phường Quang Trung, TP. Vinh, Tỉnh Nghệ An',
+      issue_date: '2021-07-25',
+      expiry_date: '2033-10-09',
+      chip_serial: 'VN-CHIP-93017654',
+      portrait_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80'
+    },
+
+    // --- KHU VỰC THỪA THIÊN HUẾ (046) ---
+    {
+      cccd: '046196008123',
+      full_name: 'Trần Nguyễn Hương Giang',
+      dob: '1996-06-05',
+      gender: 'Nữ',
+      ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Trung ương Huế, Tỉnh Thừa Thiên Huế',
+      hometown: 'TP. Huế, Tỉnh Thừa Thiên Huế',
+      permanent_address: 'Số 18 Lê Lợi, Phường Vĩnh Ninh, TP. Huế, Tỉnh Thừa Thiên Huế',
+      issue_date: '2022-05-30',
+      expiry_date: '2036-06-05',
+      chip_serial: 'VN-CHIP-96008123',
+      portrait_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'
+    },
+
+    // --- KHU VỰC BÌNH DƯƠNG (074) ---
+    {
+      cccd: '074095021487',
+      full_name: 'Phạm Minh Đức',
+      dob: '1995-07-21',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      birthplace: 'Bệnh viện Đa khoa Tỉnh Bình Dương',
+      hometown: 'TP. Thủ Dầu Một, Tỉnh Bình Dương',
+      permanent_address: 'Số 89 Đại lộ Bình Dương, Phường Phú Hòa, TP. Thủ Dầu Một, Tỉnh Bình Dương',
+      issue_date: '2021-10-02',
+      expiry_date: '2035-07-21',
+      chip_serial: 'VN-CHIP-95021487',
+      portrait_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80'
     }
   ];
 
   const insertCitizen = db.prepare(`
-    INSERT INTO national_citizen_registry (cccd, full_name, dob, gender, ethnicity, hometown, permanent_address, issue_date, expiry_date, chip_serial, portrait_url)
-    VALUES (@cccd, @full_name, @dob, @gender, @ethnicity, @hometown, @permanent_address, @issue_date, @expiry_date, @chip_serial, @portrait_url)
+    INSERT INTO national_citizen_registry (
+      cccd, full_name, dob, gender, ethnicity, birthplace, hometown, permanent_address, 
+      issue_date, expiry_date, chip_serial, portrait_url
+    )
+    VALUES (
+      @cccd, @full_name, @dob, @gender, @ethnicity, @birthplace, @hometown, @permanent_address, 
+      @issue_date, @expiry_date, @chip_serial, @portrait_url
+    )
   `);
   for (const c of citizensData) {
     insertCitizen.run(c);

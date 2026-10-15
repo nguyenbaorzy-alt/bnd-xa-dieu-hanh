@@ -353,6 +353,7 @@ function initSchema() {
       dob TEXT NOT NULL,
       gender TEXT NOT NULL,
       ethnicity TEXT DEFAULT 'Kinh',
+      birthplace TEXT,
       hometown TEXT NOT NULL,
       permanent_address TEXT NOT NULL,
       issue_date TEXT NOT NULL,
@@ -419,6 +420,7 @@ function initSchema() {
   userAddCol('dob', 'TEXT');
   userAddCol('gender', 'TEXT');
   userAddCol('ethnicity', "TEXT DEFAULT 'Kinh'");
+  userAddCol('birthplace', 'TEXT');
   userAddCol('hometown', 'TEXT');
   userAddCol('permanent_address', 'TEXT');
   userAddCol('issue_date', 'TEXT');
@@ -427,6 +429,14 @@ function initSchema() {
   userAddCol('ekyc_face_image', 'TEXT');
   userAddCol('ekyc_match_score', 'REAL');
   userAddCol('ekyc_verified_at', 'TEXT');
+
+  // Migration: Bổ sung birthplace cho bảng national_citizen_registry nếu chưa có
+  try {
+    const regCols = db.prepare('PRAGMA table_info(national_citizen_registry)').all().map(c => c.name);
+    if (!regCols.includes('birthplace')) {
+      db.exec('ALTER TABLE national_citizen_registry ADD COLUMN birthplace TEXT;');
+    }
+  } catch (err) {}
 
   try {
     db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_cccd ON users(cccd) WHERE cccd IS NOT NULL;');
@@ -451,16 +461,17 @@ function initSchema() {
           dob = '1995-10-15',
           gender = 'Nữ',
           ethnicity = 'Kinh',
+          birthplace = 'Bệnh viện Đa khoa Thanh Trì, TP. Hà Nội',
           hometown = 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
           permanent_address = 'Số 42 Triều Khúc, Xã Tân Triều, Thanh Trì, Hà Nội',
           chip_serial = 'VN-CHIP-95000007',
           ekyc_status = 'verified',
           ekyc_match_score = 99.2,
           ekyc_verified_at = datetime('now', 'localtime')
-      WHERE username = 'nguoidan' AND (cccd IS NULL OR cccd = '' OR ekyc_status != 'verified')
+      WHERE username = 'nguoidan'
     `).run();
-    db.prepare("UPDATE users SET cccd = '001088000001', is_phone_verified = 1 WHERE username = 'admin' AND (cccd IS NULL OR cccd = '')").run();
-    db.prepare("UPDATE users SET cccd = '001075000002', is_phone_verified = 1 WHERE username = 'chutich' AND (cccd IS NULL OR cccd = '')").run();
+    db.prepare("UPDATE users SET cccd = '001088000001', is_phone_verified = 1, birthplace = 'Bệnh viện Bạch Mai, TP. Hà Nội', dob = '1988-06-12', gender = 'Nam', hometown = 'Huyện Thanh Trì, TP. Hà Nội', permanent_address = 'Số 12 Ngõ 66 Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội' WHERE username = 'admin'").run();
+    db.prepare("UPDATE users SET cccd = '001075000002', is_phone_verified = 1, birthplace = 'Trạm Y tế Xã Tân Triều, Thanh Trì, TP. Hà Nội', dob = '1975-09-02', gender = 'Nam', hometown = 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội', permanent_address = 'Thôn Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội' WHERE username = 'chutich'").run();
   } catch (e) {}
 
   // Migration: Tự động bổ sung các cột cho bảng tasks nếu chưa tồn tại

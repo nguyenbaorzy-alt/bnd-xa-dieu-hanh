@@ -37,6 +37,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Phân hệ An ninh mạng & Tường lửa Quản lý IP (B-Firewall Studio)
 const { securityRouter, getClientIp } = require('./routes/security');
 const { parseCccd } = require('./utils/cccd');
+const { lookupNationalRegistry, isNameMatching } = require('./services/national_gateway');
 
 // Middleware Tường lửa kiểm tra IP & Giám sát an ninh 24/7
 app.use((req, res, next) => {
@@ -91,7 +92,7 @@ const kpiRouter = require('./routes/kpi');
 app.use('/api', kpiRouter);
 
 // Phân hệ eKYC CCCD Gắn Chip & Sinh trắc học khuôn mặt
-const { ekycRouter, isNameMatching } = require('./routes/ekyc');
+const { ekycRouter } = require('./routes/ekyc');
 app.use('/api/ekyc', ekycRouter);
 
 // Phân hệ Tin tức & Bản tin UBND Xã/Phường
@@ -153,7 +154,7 @@ function authMiddleware(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, cccd, dob, gender, ethnicity, hometown, permanent_address, chip_serial, ekyc_status, ekyc_match_score, ekyc_verified_at, is_active FROM users WHERE id = ?').get(decoded.id);
+    const user = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, cccd, dob, gender, ethnicity, birthplace, hometown, permanent_address, chip_serial, ekyc_status, ekyc_match_score, ekyc_verified_at, is_active FROM users WHERE id = ?').get(decoded.id);
     if (!user || !user.is_active) {
       return res.status(401).json({ error: 'Tài khoản không tồn tại hoặc đã bị khóa' });
     }
@@ -171,7 +172,7 @@ function optionalAuth(req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      req.user = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, cccd, dob, gender, ethnicity, hometown, permanent_address, chip_serial, ekyc_status, ekyc_match_score, ekyc_verified_at FROM users WHERE id = ?').get(decoded.id);
+      req.user = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, cccd, dob, gender, ethnicity, birthplace, hometown, permanent_address, chip_serial, ekyc_status, ekyc_match_score, ekyc_verified_at FROM users WHERE id = ?').get(decoded.id);
     } catch (e) {
       // ignore
     }
@@ -512,43 +513,16 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(400).json({ error: `Số CCCD [${validCccd}] đã được đăng ký trên hệ thống. Mỗi công dân chỉ được đăng ký duy nhất 1 tài khoản.` });
     }
 
-    // Tra cứu đối soát trực tiếp với Cơ sở dữ liệu Quốc gia về Dân cư cấp xã
-    citizenRecord = db.prepare('SELECT * FROM national_citizen_registry WHERE cccd = ?').get(validCccd);
-
+    // Tra cứu đối soát trực tiếp với Cổng CSDL Dân cư Quốc gia (C06 - Bộ Công An) & Cổng DVCQG
     if (assignedRole === 'citizen') {
-      if (!citizenRecord) {
-        // Đồng bộ dữ liệu CSDL Dân cư Quốc gia cấp xã
-        const prov = cccdInfo.province || 'TP. Hà Nội';
-        const year = cccdInfo.birth_year || 1998;
-        const gen = cccdInfo.gender || 'Nam';
-        const chipSer = `VN-CHIP-${validCccd.slice(-8)}`;
-
-        try {
-          db.prepare(`
-            INSERT INTO national_citizen_registry (cccd, full_name, dob, gender, ethnicity, hometown, permanent_address, issue_date, expiry_date, chip_serial, portrait_url)
-            VALUES (?, ?, ?, ?, 'Kinh', ?, ?, ?, ?, ?, ?)
-          `).run(
-            validCccd,
-            String(full_name).trim(),
-            `${year}-01-01`,
-            gen,
-            prov,
-            `Thôn Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, ${prov}`,
-            `${year + 20}-01-01`,
-            `${year + 40}-01-01`,
-            chipSer,
-            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80'
-          );
-        } catch (e) {}
-        citizenRecord = db.prepare('SELECT * FROM national_citizen_registry WHERE cccd = ?').get(validCccd);
-      } else {
-        // Kiểm tra họ tên chặt chẽ: Phải khớp với họ tên đã cấp trong CCCD trên CSDL Dân cư!
-        if (!isNameMatching(full_name, citizenRecord.full_name)) {
-          return res.status(400).json({
-            error: `Họ và tên [${String(full_name).trim()}] KHÔNG TRÙNG KHỚP với thông tin cấp thẻ CCCD [${citizenRecord.full_name}] trên CSDL Dân cư Quốc gia! Mỗi công dân chỉ được đăng ký bằng đúng họ tên trên căn cước của mình.`
-          });
-        }
+      const nationalLookup = lookupNationalRegistry(validCccd, full_name);
+      if (!nationalLookup.success) {
+        return res.status(400).json({
+          error: nationalLookup.error,
+          mismatched: nationalLookup.mismatched || false
+        });
       }
+      citizenRecord = nationalLookup.citizen;
 
       // Xác thực chữ ký eKYC sinh trắc học nếu có
       if (ekyc_token) {
@@ -566,6 +540,8 @@ app.post('/api/auth/register', (req, res) => {
       if (!ekycFaceImage && citizenRecord.portrait_url) {
         ekycFaceImage = citizenRecord.portrait_url;
       }
+    } else {
+      citizenRecord = db.prepare('SELECT * FROM national_citizen_registry WHERE cccd = ?').get(validCccd);
     }
   }
 
@@ -581,18 +557,18 @@ app.post('/api/auth/register', (req, res) => {
   const userDept = department ? String(department).trim() : (assignedRole === 'citizen' ? 'Công dân' : 'Văn phòng - Thống kê');
   const userPos = position ? String(position).trim() : (assignedRole === 'citizen' ? 'Công dân' : 'Cán bộ, chuyên viên');
 
-  // Lưu trữ đầy đủ hồ sơ định danh công dân điện tử vào CSDL
+  // Lưu trữ đầy đủ hồ sơ định danh công dân điện tử vào CSDL với nơi khai sinh/nơi sinh và ngày sinh chuẩn
   const stmt = db.prepare(`
     INSERT INTO users (
       username, password, full_name, role, department, position, email, phone, cccd, 
       is_phone_verified, phone_verified_at,
-      dob, gender, ethnicity, hometown, permanent_address, issue_date, chip_serial,
+      dob, gender, ethnicity, birthplace, hometown, permanent_address, issue_date, chip_serial,
       ekyc_status, ekyc_face_image, ekyc_match_score, ekyc_verified_at
     )
     VALUES (
       ?, ?, ?, ?, ?, ?, ?, ?, ?, 
       1, datetime('now', 'localtime'),
-      ?, ?, ?, ?, ?, ?, ?, 
+      ?, ?, ?, ?, ?, ?, ?, ?, 
       ?, ?, ?, datetime('now', 'localtime')
     )
   `);
@@ -610,6 +586,7 @@ app.post('/api/auth/register', (req, res) => {
     citizenRecord ? citizenRecord.dob : null,
     citizenRecord ? citizenRecord.gender : null,
     citizenRecord ? (citizenRecord.ethnicity || 'Kinh') : 'Kinh',
+    citizenRecord ? citizenRecord.birthplace : null,
     citizenRecord ? citizenRecord.hometown : null,
     citizenRecord ? citizenRecord.permanent_address : null,
     citizenRecord ? citizenRecord.issue_date : null,
@@ -623,12 +600,12 @@ app.post('/api/auth/register', (req, res) => {
   const token = jwt.sign({ id: newUserId, username: cleanUsername, role: assignedRole }, JWT_SECRET, { expiresIn: '7d' });
   const newUser = db.prepare(`
     SELECT id, username, full_name, role, department, position, email, phone, cccd,
-           dob, gender, ethnicity, hometown, permanent_address, chip_serial,
+           dob, gender, ethnicity, birthplace, hometown, permanent_address, chip_serial,
            ekyc_status, ekyc_match_score, ekyc_verified_at, is_active, is_phone_verified, created_at 
     FROM users WHERE id = ?
   `).get(newUserId);
 
-  logAudit(newUserId, cleanUsername, assignedRole, 'REGISTER_EKYC', 'auth', newUserId, `Tạo tài khoản công dân đã xác minh eKYC & CCCD Chip thành công (${newUser.full_name}, SĐT: ${cleanPhone}, CCCD: ${validCccd || 'N/A'})`, req.ip);
+  logAudit(newUserId, cleanUsername, assignedRole, 'REGISTER_EKYC', 'auth', newUserId, `Tạo tài khoản công dân đã xác minh eKYC & CSDL Dân cư Quốc gia thành công (${newUser.full_name}, SĐT: ${cleanPhone}, CCCD: ${validCccd || 'N/A'}, Nơi sinh: ${newUser.birthplace || 'N/A'})`, req.ip);
 
   res.status(201).json({
     token,
@@ -639,7 +616,7 @@ app.post('/api/auth/register', (req, res) => {
   });
 });
 
-// API Thẩm định số Căn cước công dân thời gian thực (CCCD Validator API)
+// API Thẩm định số Căn cước công dân thời gian thực (CCCD Validator API qua Cổng C06 & DVCQG)
 app.post('/api/auth/verify-cccd', (req, res) => {
   const { cccd } = req.body;
   const result = parseCccd(cccd);
@@ -648,12 +625,18 @@ app.post('/api/auth/verify-cccd', (req, res) => {
   }
 
   const existing = db.prepare('SELECT id FROM users WHERE cccd = ?').get(result.cccd);
+  const nationalRecord = lookupNationalRegistry(result.cccd);
+
   res.json({
     ...result,
     is_registered: !!existing,
+    national_registry: nationalRecord.success ? nationalRecord.citizen : null,
+    gateway_info: nationalRecord.success ? nationalRecord.gateway_info : null,
     message: existing 
       ? 'Số CCCD này đã được liên kết với một tài khoản trên hệ thống.' 
-      : `Số CCCD hợp lệ: ${result.province} | ${result.gender} | Sinh năm ${result.birth_year}`
+      : (nationalRecord.success 
+          ? `Số CCCD hợp lệ [C06 Đã Thẩm Định]: ${nationalRecord.citizen.full_name} | Sinh ngày: ${nationalRecord.citizen.dob} | Nơi sinh: ${nationalRecord.citizen.birthplace}` 
+          : `Số CCCD hợp lệ: ${result.province} | ${result.gender} | Sinh năm ${result.birth_year}`)
   });
 });
 
