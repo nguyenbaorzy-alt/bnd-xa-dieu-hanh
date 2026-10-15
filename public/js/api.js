@@ -161,6 +161,18 @@ const API = {
     return this.request('/api/ekyc/demo-citizens');
   },
 
+  async upgradeCitizenEkyc(data) {
+    const res = await this.request('/api/ekyc/upgrade-citizen-ekyc', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    if (res.user) {
+      this.setUser(res.user);
+      window.dispatchEvent(new CustomEvent('auth-changed'));
+    }
+    return res;
+  },
+
   // Bản tin & Thông báo UBND Xã/Phường
   async getNews(params = {}) {
     const q = new URLSearchParams(params).toString();

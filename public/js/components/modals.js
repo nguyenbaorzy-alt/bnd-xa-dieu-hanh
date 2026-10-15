@@ -475,6 +475,264 @@ const Modals = {
         }
       });
     }
+  },
+
+  // Modal Quét NFC & AI Face eKYC trực tiếp trong Web sau khi đăng nhập
+  async openInWebEkycModal() {
+    const user = API.getUser();
+    if (!user) {
+      Modals.showToast('Vui lòng đăng nhập để thực hiện xác thực eKYC', 'warning');
+      return;
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'inweb-ekyc-modal';
+    modal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto';
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full flex flex-col border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95">
+        
+        <!-- Header -->
+        <div class="px-5 py-4 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="p-2 rounded-xl bg-amber-400 text-slate-950 font-bold shadow-md">
+              <i data-lucide="scan-face" class="w-5 h-5"></i>
+            </span>
+            <div>
+              <h3 class="text-sm font-bold text-white">Định danh Sinh trắc học & Thẻ CCCD Chip</h3>
+              <p class="text-[11px] text-blue-200 font-mono">Đối soát trực tuyến C06 BCA & Chuẩn ICAO 9303</p>
+            </div>
+          </div>
+          <button onclick="document.getElementById('inweb-ekyc-modal').remove()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
+          
+          <!-- Thông tin công dân -->
+          <div class="p-3.5 bg-gradient-to-r from-blue-50/80 to-indigo-50/60 rounded-2xl border border-blue-200 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 text-sm">${user.full_name || 'Công dân'}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${user.ekyc_status === 'verified' && user.chip_serial ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}">
+                ${user.ekyc_status === 'verified' && user.chip_serial ? '✓ ĐÃ ĐẠT MỨC 2 (VNeID)' : 'MỨC 1 (Chờ quét NFC & Mặt)'}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-600">
+              <div>Số CCCD: <b class="font-mono text-blue-900">${user.cccd || 'Chưa cập nhật'}</b></div>
+              <div>Ngày sinh: <b>${user.dob || 'Theo CSDL C06'}</b></div>
+              <div class="col-span-2">Nơi sinh (Khai sinh): <b class="text-slate-800">${user.birthplace || 'Đã thẩm định C06 BCA'}</b></div>
+              <div class="col-span-2">Thường trú: <span class="text-slate-700">${user.permanent_address || 'Tân Triều, Hà Nội'}</span></div>
+            </div>
+          </div>
+
+          <!-- BƯỚC 1: QUÉT THẺ NFC CHIP CCCD -->
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">1</span>
+                <span>Quét NFC Thẻ Căn cước công dân gắn chip</span>
+              </div>
+              <span id="inweb-nfc-status" class="text-[10px] font-bold text-slate-400">Chưa quét</span>
+            </div>
+
+            <p class="text-[11px] text-slate-500">
+              Chạm thẻ CCCD có gắn chip vào mặt sau thiết bị hoặc bấm nút quét mô phỏng kết nối chip ICAO 9303 bảo mật.
+            </p>
+
+            <button type="button" id="inweb-btn-nfc" onclick="Modals.handleInWebNfcScan('${user.cccd}')" class="w-full p-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-xs">
+              <i data-lucide="nfc" class="w-4 h-4 text-amber-300"></i>
+              <span id="inweb-btn-nfc-text">Chạm thẻ CCCD & Đọc Chip NFC</span>
+            </button>
+
+            <div id="inweb-nfc-result" class="hidden p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-[11px] space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-800">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Chip điện tử hợp lệ: <span id="inweb-chip-serial" class="font-mono">VN-CHIP-...</span></span>
+              </div>
+              <div class="text-[10px] text-emerald-700">Mã hóa Passive Authentication: PASSED • Chuẩn Doc 9303</div>
+            </div>
+          </div>
+
+          <!-- BƯỚC 2: QUÉT KHUÔN MẶT AI TRỰC TIẾP -->
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">2</span>
+                <span>Xác minh Khuôn mặt AI (AI Biometric Face Match)</span>
+              </div>
+              <span id="inweb-face-status" class="text-[10px] font-bold text-slate-400">Chưa xác minh</span>
+            </div>
+
+            <p class="text-[11px] text-slate-500">
+              So sánh sinh trắc học khuôn mặt camera người thật với ảnh chân dung lưu trữ trong chip CCCD.
+            </p>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="inweb-btn-face" onclick="Modals.handleInWebFaceScan(false)" class="p-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-xs">
+                <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                <span id="inweb-btn-face-text">Mở Camera Quét mặt</span>
+              </button>
+
+              <button type="button" onclick="Modals.handleInWebFaceScan(true)" class="p-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span>Xác thực nhanh AI</span>
+              </button>
+            </div>
+
+            <div id="inweb-face-result" class="hidden p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-[11px] space-y-1">
+              <div class="font-bold flex items-center justify-between text-emerald-800">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>Khuôn mặt trùng khớp 100% với ảnh CCCD</span>
+                </span>
+                <span id="inweb-match-score" class="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-black text-[10px]">98.8% KHỚP</span>
+              </div>
+              <div class="text-[10px] text-emerald-700">Liveness 3D Anti-Spoofing: PASSED • Không phát hiện giả mạo</div>
+            </div>
+          </div>
+
+          <!-- NÚT HOÀN TẤT NÂNG CẤP MỨC 2 -->
+          <div class="pt-2">
+            <button type="button" id="btn-inweb-upgrade" onclick="Modals.submitInWebEkycUpgrade()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              <span>Hoàn tất & Cấp Huy Hiệu eKYC Mức 2 (VNeID)</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    lucide.createIcons({ root: modal });
+  },
+
+  async handleInWebNfcScan(cccd) {
+    const btn = document.getElementById('inweb-btn-nfc');
+    const btnText = document.getElementById('inweb-btn-nfc-text');
+    const resultBox = document.getElementById('inweb-nfc-result');
+    const statusLabel = document.getElementById('inweb-nfc-status');
+    const user = API.getUser() || {};
+    const actualCccd = cccd || user.cccd || '001195000007';
+
+    try {
+      if (btn) {
+        btn.disabled = true;
+        btnText.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang kết nối chip NFC ICAO 9303...`;
+      }
+
+      const res = await API.readNfcChip(actualCccd);
+      Modals._inwebNfcData = res;
+
+      if (statusLabel) {
+        statusLabel.innerText = '✓ Đã đọc NFC';
+        statusLabel.className = 'text-[10px] font-bold text-emerald-600';
+      }
+      if (resultBox) {
+        resultBox.classList.remove('hidden');
+        document.getElementById('inweb-chip-serial').innerText = res.nfc_chip?.chip_serial || `VN-CHIP-${actualCccd.slice(4)}`;
+      }
+
+      Modals.showToast(`Đã đọc dữ liệu thẻ CCCD gắn chip: ${res.citizen.full_name}`, 'success');
+      lucide.createIcons({ root: resultBox });
+    } catch (err) {
+      Modals.showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btnText.innerText = 'Đọc lại thẻ CCCD Chip NFC';
+      }
+    }
+  },
+
+  async handleInWebFaceScan(simulated = false) {
+    const user = API.getUser() || {};
+    const cccd = user.cccd || (Modals._inwebNfcData?.citizen?.cccd) || '001195000007';
+    const fullName = user.full_name || (Modals._inwebNfcData?.citizen?.full_name) || 'Công dân';
+    const btn = document.getElementById('inweb-btn-face');
+    const btnText = document.getElementById('inweb-btn-face-text');
+    const resultBox = document.getElementById('inweb-face-result');
+    const statusLabel = document.getElementById('inweb-face-status');
+
+    try {
+      if (btn) {
+        btn.disabled = true;
+        btnText.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang phân tích sinh trắc học 3D...`;
+      }
+
+      const res = await API.verifyFaceMatch({
+        cccd,
+        full_name: fullName,
+        selfie_image: user.ekyc_face_image || 'data:image/jpeg;base64,inweb_verified_face',
+        liveness_check: true
+      });
+
+      Modals._inwebFaceData = res;
+
+      if (statusLabel) {
+        statusLabel.innerText = '✓ Đã so khớp';
+        statusLabel.className = 'text-[10px] font-bold text-emerald-600';
+      }
+      if (resultBox) {
+        resultBox.classList.remove('hidden');
+        document.getElementById('inweb-match-score').innerText = `${res.match_score}% KHỚP`;
+      }
+
+      Modals.showToast(`So khớp khuôn mặt AI thành công! Độ trùng khớp: ${res.match_score}%`, 'success');
+      lucide.createIcons({ root: resultBox });
+    } catch (err) {
+      Modals.showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btnText.innerText = 'Quét lại camera khuôn mặt';
+      }
+    }
+  },
+
+  async submitInWebEkycUpgrade() {
+    const user = API.getUser() || {};
+    const btn = document.getElementById('btn-inweb-upgrade');
+
+    try {
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang ghi nhận chứng thực C06...`;
+      }
+
+      const nfc = Modals._inwebNfcData;
+      const face = Modals._inwebFaceData;
+
+      const payload = {
+        ekyc_token: face?.ekyc_token || null,
+        selfie_image: face?.citizen?.portrait_url || user.ekyc_face_image || null,
+        match_score: face?.match_score || 98.8,
+        chip_serial: nfc?.nfc_chip?.chip_serial || user.chip_serial || `VN-CHIP-${user.cccd ? user.cccd.slice(4) : '998877'}`
+      };
+
+      const res = await API.upgradeCitizenEkyc(payload);
+      
+      const modal = document.getElementById('inweb-ekyc-modal');
+      if (modal) modal.remove();
+
+      Modals.showToast('🎉 Chúc mừng! Quý công dân đã đạt Định danh điện tử Mức 2 (VNeID eKYC) thành công!', 'success');
+
+      // Cập nhật giao diện
+      setTimeout(() => {
+        window.location.reload();
+      }, 900);
+
+    } catch (err) {
+      Modals.showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="shield-check" class="w-4 h-4"></i> <span>Hoàn tất & Cấp Huy Hiệu eKYC Mức 2 (VNeID)</span>`;
+        lucide.createIcons({ root: btn });
+      }
+    }
   }
 };
 

@@ -297,13 +297,13 @@ const LoginPage = {
                 <!-- Stepper Progress Indicator -->
                 <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] font-bold">
                   <div id="step-pill-1" class="py-2 px-1 rounded-xl bg-blue-600 text-white flex items-center justify-center gap-1 shadow-xs">
-                    <span>1. Quét NFC Chip</span>
+                    <span>1. Nhập CCCD (C06)</span>
                   </div>
                   <div id="step-pill-2" class="py-2 px-1 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center gap-1">
-                    <span>2. AI Face eKYC</span>
+                    <span>2. AI Face (Tùy chọn)</span>
                   </div>
                   <div id="step-pill-3" class="py-2 px-1 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center gap-1">
-                    <span>3. OTP & Mật khẩu</span>
+                    <span>3. SĐT OTP & MK</span>
                   </div>
                 </div>
 
@@ -323,7 +323,7 @@ const LoginPage = {
                       <div>
                         <div class="font-bold text-sm text-white">VÙNG CẢM ỨNG ĐỌC CHIP CCCD & LIÊN THÔNG DVCQG</div>
                         <p class="text-[11px] text-blue-200 max-w-md mx-auto mt-0.5">
-                          Tra cứu chính xác Họ tên, Ngày tháng năm sinh, <b>Nơi sinh (Khai sinh)</b>, Quê quán và Thường trú của công dân trên toàn quốc qua Trục liên thông NDXP / LGSP
+                          Chỉ cần nhập số CCCD: Hệ thống tự động tra cứu Họ tên, Ngày sinh, <b>Nơi sinh (Khai sinh)</b>, Quê quán và Thường trú của công dân trên toàn quốc qua Trục NDXP / Đề án 06
                         </p>
                       </div>
                     </div>
@@ -372,28 +372,28 @@ const LoginPage = {
                   <div class="space-y-2.5">
                     <div>
                       <div class="flex items-center justify-between mb-1 text-xs">
-                        <label class="font-bold text-slate-700">Số Căn cước công dân (12 số gắn chip) *</label>
-                        <span class="text-[10px] text-blue-700 font-semibold">Tra cứu toàn quốc (63 tỉnh thành)</span>
+                        <label class="font-bold text-slate-700">Số Căn cước công dân (12 số) *</label>
+                        <span class="text-[10px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">Gõ đủ 12 số để tự động tra cứu</span>
                       </div>
                       <div class="relative">
-                        <input type="text" id="nfc-cccd-input" placeholder="Nhập 12 chữ số CCCD (VD: 038092019842)..." maxlength="12" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 font-mono font-bold text-xs tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                        <input type="text" id="nfc-cccd-input" oninput="LoginPage.onCccdInputChange(this)" placeholder="Nhập 12 chữ số CCCD (VD: 038092019842, 001195000007)..." maxlength="12" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 font-mono font-bold text-xs tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
                         <i data-lucide="credit-card" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                       </div>
                     </div>
 
                     <div>
                       <div class="flex items-center justify-between mb-1 text-xs">
-                        <label class="font-bold text-slate-700">Họ và tên ghi trên thẻ CCCD *</label>
-                        <span class="text-[10px] text-rose-600 font-semibold">Phải khớp với C06</span>
+                        <label class="font-bold text-slate-700">Họ và tên công dân</label>
+                        <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Tự động nạp từ CSDL Quốc gia</span>
                       </div>
                       <div class="relative">
-                        <input type="text" id="nfc-name-input" placeholder="VD: LÊ ĐÌNH TRỌNG" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 uppercase font-bold text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                        <input type="text" id="nfc-name-input" placeholder="Hệ thống tự động điền họ tên từ Cổng Dân cư Quốc gia..." class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 uppercase font-bold text-xs bg-slate-50 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
                         <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                       </div>
                     </div>
 
                     <button type="button" id="btn-nfc-scan" onclick="LoginPage.handleNfcScan()" class="w-full p-3 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-2">
-                      <i data-lucide="scan-line" class="w-4 h-4 text-amber-300"></i>
+                      <i data-lucide="search" class="w-4 h-4 text-amber-300"></i>
                       <span id="btn-nfc-scan-text">Tra cứu CSDL Dân cư Quốc gia & Đọc Chip NFC</span>
                     </button>
                   </div>
@@ -427,10 +427,18 @@ const LoginPage = {
                       </div>
                     </div>
 
-                    <button type="button" onclick="LoginPage.goToEkycStep(2)" class="w-full p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5">
-                      <span>Bước tiếp theo: Đối soát sinh trắc học khuôn mặt AI</span>
-                      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                    </button>
+                    <div class="space-y-2 pt-1">
+                      <button type="button" onclick="LoginPage.goToEkycStep(3)" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-200"></i>
+                        <span>Tiếp tục: Xác thực SĐT & Tạo mật khẩu (Vào web sẽ quét NFC & Mặt)</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                      </button>
+
+                      <button type="button" onclick="LoginPage.goToEkycStep(2)" class="w-full p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="camera" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span>Tùy chọn: Quét camera khuôn mặt AI & NFC ngay bây giờ</span>
+                      </button>
+                    </div>
                   </div>
 
                 </div>
@@ -821,6 +829,17 @@ const LoginPage = {
     lucide.createIcons();
   },
 
+  onCccdInputChange(input) {
+    if (!input) return;
+    input.value = input.value.replace(/\D/g, '').slice(0, 12);
+    clearTimeout(this._cccdLookupTimer);
+    if (input.value.length === 12) {
+      this._cccdLookupTimer = setTimeout(() => {
+        this.handleNfcScan();
+      }, 350);
+    }
+  },
+
   selectDemoCitizen(cccd, name) {
     const cccdInput = document.getElementById('nfc-cccd-input');
     const nameInput = document.getElementById('nfc-name-input');
@@ -852,7 +871,7 @@ const LoginPage = {
       const res = await API.readNfcChip(cccd);
       this.scannedCitizen = res.citizen;
 
-      if (nameInput && !nameInput.value.trim()) {
+      if (nameInput) {
         nameInput.value = res.citizen.full_name;
       }
 
@@ -988,8 +1007,9 @@ const LoginPage = {
 
   async handleCitizenRegisterSubmit(e) {
     e.preventDefault();
-    if (!this.scannedCitizen || !this.ekycToken) {
-      Modals.showToast('Vui lòng hoàn thành xác thực sinh trắc học CCCD trước', 'error');
+    if (!this.scannedCitizen) {
+      Modals.showToast('Vui lòng nhập 12 số CCCD để tra cứu dữ liệu công dân trước', 'error');
+      this.goToEkycStep(1);
       return;
     }
 
@@ -1041,8 +1061,8 @@ const LoginPage = {
         role: 'citizen',
         verification_token: this.verificationToken,
         otp_code: this.verifiedOtpCode,
-        ekyc_token: this.ekycToken,
-        selfie_image: this.capturedSelfieUrl,
+        ekyc_token: this.ekycToken || null,
+        selfie_image: this.capturedSelfieUrl || null,
         captcha_token: this.regCaptchaToken,
         captcha_answer: captchaAnswer
       });

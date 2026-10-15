@@ -66,6 +66,15 @@ const Header = {
               <span id="live-header-clock">--:--:-- (Giờ Hà Nội)</span>
             </div>
             
+            <!-- Nút Quét NFC & AI Face eKYC cho Công Dân -->
+            ${user && user.role === 'citizen' ? `
+              <button onclick="Modals.openInWebEkycModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white hover:from-blue-800 hover:to-indigo-900 transition shadow-xs" title="Quét thẻ NFC chip CCCD & Xác minh khuôn mặt AI Mức 2">
+                <i data-lucide="scan-face" class="w-3.5 h-3.5 text-amber-300"></i>
+                <span class="hidden sm:inline">Quét NFC & Khuôn mặt</span>
+                <span class="sm:hidden">eKYC</span>
+              </button>
+            ` : ''}
+
             <!-- Quick UI Rating Button (Mục bắt buộc) -->
             <button onclick="Modals.openAppRatingModal()" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/10 text-amber-800 border border-amber-300 hover:bg-amber-500 hover:text-white transition shadow-2xs" title="Đánh giá giao diện & trải nghiệm app">
               <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
@@ -148,6 +157,12 @@ const Header = {
                     <i data-lucide="bell" class="w-4 h-4 text-blue-500"></i>
                     <span>Thông báo của tôi</span>
                   </a>
+                  ${user.role === 'citizen' ? `
+                    <button onclick="Modals.openInWebEkycModal(); document.getElementById('user-dropdown')?.classList.add('hidden');" class="w-full text-left flex items-center gap-2.5 px-4 py-2 text-indigo-700 hover:bg-indigo-50 transition font-bold">
+                      <i data-lucide="scan-face" class="w-4 h-4 text-indigo-600"></i>
+                      <span>Xác thực NFC & eKYC Mức 2</span>
+                    </button>
+                  ` : ''}
                   ${user.role === 'admin' ? `
                     <a href="#ip-security" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition">
                       <i data-lucide="shield-alert" class="w-4 h-4 text-indigo-600"></i>

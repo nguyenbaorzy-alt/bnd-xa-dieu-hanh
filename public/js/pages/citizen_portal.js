@@ -37,24 +37,27 @@ const CitizenPortalPage = {
         </div>
 
         ${user.cccd ? `
-          <div class="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 flex items-center justify-between shadow-2xs">
+          <div class="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+              <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-sm shrink-0">
                 🪪
               </div>
               <div>
-                <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <div class="font-bold flex items-center gap-1.5 text-emerald-900 flex-wrap">
                   <span>Hồ sơ công dân điện tử đã định danh Đề án 06</span>
-                  <span class="text-[9px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-black">XÁC THỰC CCCD GẮN CHIP</span>
+                  <span class="text-[9px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-black">
+                    ${user.chip_serial ? '✓ ĐÃ ĐẠT MỨC 2 (VNeID)' : 'MỨC 1 (ĐÃ LIÊN KẾT CCCD & SĐT)'}
+                  </span>
                 </div>
-                <div class="text-[11px] text-emerald-800">
-                  Họ tên: <b>${user.full_name}</b> • CCCD: <b class="font-mono">${user.cccd}</b> ${user.birthplace ? `• Nơi sinh (Khai sinh): <b>${user.birthplace}</b>` : ''} • Thường trú: <b>${user.permanent_address || 'Xã Tân Triều, Thanh Trì, Hà Nội'}</b>
+                <div class="text-[11px] text-emerald-800 mt-0.5">
+                  Họ tên: <b>${user.full_name}</b> • CCCD: <b class="font-mono">${user.cccd}</b> ${user.birthplace ? `• Nơi sinh: <b>${user.birthplace}</b>` : ''}
                 </div>
               </div>
             </div>
-            <span class="hidden sm:inline-block text-[10px] text-emerald-800 bg-white px-2.5 py-1 rounded-xl font-bold border border-emerald-300">
-              ✓ Đã đối soát eKYC
-            </span>
+            <button type="button" onclick="Modals.openInWebEkycModal()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-xs whitespace-nowrap">
+              <i data-lucide="scan-face" class="w-4 h-4 text-amber-300"></i>
+              <span>Quét thẻ NFC & Khuôn mặt</span>
+            </button>
           </div>
         ` : ''}
 
