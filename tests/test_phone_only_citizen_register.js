@@ -139,22 +139,24 @@ async function runTests() {
   assert(loginRes.data.user.phone === testPhone, 'Nhận diện đúng tài khoản công dân');
   assert(loginRes.data.user.full_name === testFullName, 'Đúng họ tên công dân');
 
-  // Test 6: Chặn đăng ký khi chưa xác thực OTP
-  console.log('\n6. Chặn đăng ký khi số điện thoại chưa xác thực OTP:');
-  const unverifiedPhone = '0988001122';
-  const invalidReg = await makeRequest('POST', '/api/auth/register', {
-    full_name: 'Người chưa xác thực',
-    phone: unverifiedPhone,
+  // Test 6: Đăng ký siêu tốc trực tiếp chỉ với Họ tên + SĐT + Mật khẩu (KHÔNG CẦN OTP HAY CAPTCHA)
+  console.log('\n6. Kiểm thử Đăng ký siêu tốc trực tiếp (Không cần xác minh OTP/Captcha):');
+  const directPhone = '0988554433';
+  const directReg = await makeRequest('POST', '/api/auth/register', {
+    full_name: 'Trần Văn Minh',
+    phone: directPhone,
     password: 'password123',
     confirm_password: 'password123',
     role: 'citizen'
   });
-  assert(invalidReg.status === 400, 'Bị chặn với HTTP 400');
-  assert(invalidReg.data.error.includes('chưa được xác minh qua SMS OTP'), 'Thông báo yêu cầu xác minh OTP');
+  assert(directReg.status === 201, 'Đăng ký trực tiếp thành công HTTP 201');
+  assert(directReg.data.user.full_name === 'Trần Văn Minh', 'Đúng họ tên đăng ký');
+  assert(directReg.data.user.phone === directPhone, 'Đúng số điện thoại');
+  assert(directReg.data.user.username === directPhone, 'Tên đăng nhập là SĐT');
 
   // Dọn dẹp
   db.prepare('PRAGMA foreign_keys = OFF').run();
-  db.prepare('DELETE FROM users WHERE phone = ?').run(testPhone);
+  db.prepare('DELETE FROM users WHERE phone IN (?, ?)').run(testPhone, directPhone);
   db.prepare('PRAGMA foreign_keys = ON').run();
 
   console.log('\n========================================================================');

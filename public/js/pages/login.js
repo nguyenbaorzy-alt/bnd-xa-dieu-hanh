@@ -292,17 +292,20 @@ const LoginPage = {
               <!-- ========================================== -->
               <!-- CITIZEN PHONE OTP REGISTRATION FORM        -->
               <!-- ========================================== -->
+              <!-- ========================================== -->
+              <!-- CITIZEN SIMPLE REGISTRATION FORM           -->
+              <!-- ========================================== -->
               <div id="citizen-ekyc-wizard" class="space-y-3.5">
                 
-                <!-- Banner: Xác thực Số điện thoại chính chủ -->
+                <!-- Banner: Đăng ký tài khoản công dân -->
                 <div class="p-3.5 rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-md flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/20">
-                    <i data-lucide="smartphone" class="w-5 h-5 text-amber-300"></i>
+                    <i data-lucide="user-plus" class="w-5 h-5 text-amber-300"></i>
                   </div>
                   <div>
                     <div class="font-bold text-xs uppercase tracking-wide text-amber-300">ĐĂNG KÝ TÀI KHOẢN CÔNG DÂN</div>
                     <p class="text-[11px] text-blue-100 mt-0.5 leading-snug">
-                      Xác thực chính chủ bằng Số điện thoại (SMS OTP) nhanh chóng, tiện lợi, không cần CCCD.
+                      Đăng ký trực tiếp nhanh chóng bằng Họ tên và Số điện thoại. Không cần xác minh rườm rà.
                     </p>
                   </div>
                 </div>
@@ -321,46 +324,15 @@ const LoginPage = {
                     </div>
                   </div>
 
-                  <!-- Số điện thoại & Xác thực SMS OTP -->
-                  <div class="p-3 bg-blue-50/80 rounded-2xl border border-blue-200 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                      <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                        <i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i>
-                        <span>Số điện thoại chính chủ (Tên đăng nhập) *</span>
-                      </label>
-                      <span id="reg-phone-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-                        <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i>
-                        <span>Đã xác minh</span>
-                      </span>
-                    </div>
-
-                    <div class="flex gap-2 items-center">
-                      <div class="relative flex-1">
-                        <input type="tel" id="reg-phone" required placeholder="Nhập số điện thoại (VD: 0987654321)" maxlength="11" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-white font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                        <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                      </div>
-                      <button type="button" id="btn-send-sms-otp" onclick="LoginPage.handleSendSmsOtp()" class="px-3.5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer">
-                        <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                        <span id="btn-send-sms-text">Gửi mã OTP (SMS)</span>
-                      </button>
-                    </div>
-
-                    <!-- Khung nhập mã OTP -->
-                    <div id="reg-otp-container" class="hidden pt-2 border-t border-blue-200/60 space-y-2">
-                      <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-slate-700 font-semibold flex items-center gap-1">
-                          <i data-lucide="message-square-code" class="w-3.5 h-3.5 text-blue-600"></i>
-                          <span>Nhập 6 số OTP trong tin nhắn SMS:</span>
-                        </span>
-                        <span id="otp-timer" class="text-blue-700 font-mono font-bold text-[11px]">120s</span>
-                      </div>
-
-                      <div class="flex gap-2 items-center">
-                        <input type="text" id="reg-otp-code" placeholder="6 số OTP" maxlength="6" class="flex-1 p-2.5 rounded-xl border border-blue-300 bg-white font-mono text-center tracking-widest font-black text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
-                        <button type="button" id="btn-verify-otp" onclick="LoginPage.handleVerifySmsOtp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shrink-0 cursor-pointer">
-                          Xác nhận OTP
-                        </button>
-                      </div>
+                  <!-- Số điện thoại -->
+                  <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1 flex items-center gap-1.5">
+                      <i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i>
+                      <span>Số điện thoại (Dùng làm tên đăng nhập) *</span>
+                    </label>
+                    <div class="relative">
+                      <input type="tel" id="reg-phone" required placeholder="Nhập số điện thoại (VD: 0987654321)" maxlength="11" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-white font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                      <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                     </div>
                   </div>
 
@@ -389,30 +361,14 @@ const LoginPage = {
                     </div>
                   </div>
 
-                  <!-- Captcha Challenge -->
-                  <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                    <div class="flex items-center justify-between text-[10px]">
-                      <span class="font-bold text-slate-700">Xác minh Robot (B-Firewall™):</span>
-                      <span class="text-blue-600">Phép tính bảo vệ</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <div id="reg-captcha-container" class="shrink-0 flex items-center justify-center bg-slate-900 rounded-lg overflow-hidden cursor-pointer" onclick="LoginPage.refreshCaptcha('register')" title="Đổi câu hỏi">
-                        <div id="reg-captcha-svg" class="min-w-[120px] h-[34px] flex items-center justify-center text-[10px] text-slate-400">
-                          <span>Đang nạp...</span>
-                        </div>
-                      </div>
-                      <input type="text" id="reg-captcha-answer" placeholder="Kết quả = ?" class="flex-1 p-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-center text-xs">
-                    </div>
-                  </div>
-
                   <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center gap-2">
                     <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0"></i>
-                    <span>Tài khoản đăng nhập của bạn là <b>Số điện thoại</b> vừa xác thực. Sau khi đăng ký, bạn có thể đăng nhập ngay!</span>
+                    <span>Tên đăng nhập tài khoản chính là <b>Số điện thoại</b> của bạn. Sau khi đăng ký bạn có thể đăng nhập ngay!</span>
                   </div>
 
                   <button type="submit" id="citizen-submit-btn" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs cursor-pointer">
                     <i data-lucide="user-check" class="w-4 h-4"></i>
-                    <span>Kích hoạt tài khoản & Đăng nhập ngay</span>
+                    <span>Đăng ký & Đăng nhập ngay</span>
                   </button>
                 </form>
 
@@ -834,7 +790,6 @@ const LoginPage = {
     const phone = document.getElementById('reg-phone')?.value?.trim();
     const password = document.getElementById('reg-password')?.value;
     const confirmPassword = document.getElementById('reg-confirm-password')?.value;
-    const captchaAnswer = document.getElementById('reg-captcha-answer')?.value?.trim();
     const btn = document.getElementById('citizen-submit-btn');
 
     if (!fullName) {
@@ -849,24 +804,23 @@ const LoginPage = {
       return;
     }
 
-    if (!this.isPhoneVerified) {
-      Modals.showToast('Vui lòng bấm "Gửi mã OTP (SMS)" và xác nhận OTP cho số điện thoại', 'error');
+    const cleanPhone = phone.replace(/[\s.-]/g, '');
+    const phoneRegex = /^0(3|5|7|8|9)[0-9]{8}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      Modals.showToast('Số điện thoại không hợp lệ (10 chữ số di động)', 'error');
+      document.getElementById('reg-phone')?.focus();
       return;
     }
 
-    if (password.length < 6) {
+    if (!password || password.length < 6) {
       Modals.showToast('Mật khẩu tối thiểu 6 ký tự', 'error');
+      document.getElementById('reg-password')?.focus();
       return;
     }
 
     if (password !== confirmPassword) {
       Modals.showToast('Mật khẩu xác nhận không khớp', 'error');
-      return;
-    }
-
-    if (!captchaAnswer) {
-      Modals.showToast('Vui lòng nhập kết quả xác minh Robot (B-Firewall™)', 'error');
-      document.getElementById('reg-captcha-answer')?.focus();
+      document.getElementById('reg-confirm-password')?.focus();
       return;
     }
 
@@ -878,14 +832,10 @@ const LoginPage = {
 
       const res = await API.register({
         full_name: fullName,
-        phone: this.verifiedPhone || phone,
+        phone: cleanPhone,
         password,
         confirm_password: confirmPassword,
-        role: 'citizen',
-        verification_token: this.verificationToken,
-        otp_code: this.verifiedOtpCode,
-        captcha_token: this.regCaptchaToken,
-        captcha_answer: captchaAnswer
+        role: 'citizen'
       });
 
       Modals.showToast(`Đăng ký thành công! Xin chào công dân ${res.user.full_name}`, 'success');
@@ -896,11 +846,10 @@ const LoginPage = {
 
     } catch (err) {
       Modals.showToast(err.message, 'error');
-      this.refreshCaptcha('register');
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4"></i> <span>Kích hoạt tài khoản & Đăng nhập ngay</span>`;
+        btn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4"></i> <span>Đăng ký & Đăng nhập ngay</span>`;
         lucide.createIcons({ root: btn });
       }
     }

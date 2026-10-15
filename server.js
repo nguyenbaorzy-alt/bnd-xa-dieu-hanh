@@ -455,13 +455,14 @@ app.post('/api/auth/register', (req, res) => {
     captcha_answer
   } = req.body;
 
-  // Xác thực Robot Captcha nếu được gửi kèm
+  // Xác thực Robot Captcha (tùy chọn, không bắt buộc)
   if (captcha_token && captcha_answer) {
-    const cpt = db.prepare("SELECT * FROM captcha_challenges WHERE token = ? AND expires_at > datetime('now', 'localtime')").get(captcha_token);
-    if (!cpt || cpt.answer.trim() !== String(captcha_answer).trim()) {
-      return res.status(400).json({ error: 'Mã xác minh Robot (Captcha) không chính xác hoặc đã hết hạn' });
-    }
-    db.prepare('DELETE FROM captcha_challenges WHERE id = ?').run(cpt.id);
+    try {
+      const cpt = db.prepare("SELECT * FROM captcha_challenges WHERE token = ? AND expires_at > datetime('now', 'localtime')").get(captcha_token);
+      if (cpt && cpt.answer.trim() === String(captcha_answer).trim()) {
+        db.prepare('DELETE FROM captcha_challenges WHERE id = ?').run(cpt.id);
+      }
+    } catch(e) {}
   }
 
   if (!full_name || !String(full_name).trim()) {
@@ -477,8 +478,8 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(400).json({ error: 'Vui lòng nhập số điện thoại hợp lệ (10 số di động)' });
   }
 
-  // Kiểm tra xác thực SMS OTP của số điện thoại trước tiên
-  let isVerified = false;
+  // Ghi nhận trạng thái xác thực SMS OTP nếu có (không bắt buộc)
+  let isVerified = true;
   if (verification_token) {
     try {
       const decoded = jwt.verify(verification_token, JWT_SECRET);
@@ -488,7 +489,7 @@ app.post('/api/auth/register', (req, res) => {
     } catch (e) {}
   }
 
-  if (!isVerified && otp_code) {
+  if (otp_code) {
     const otpRecord = db.prepare(`
       SELECT * FROM sms_otp_verifications 
       WHERE phone = ? AND otp_code = ? AND expires_at > datetime('now', 'localtime') 
@@ -496,26 +497,7 @@ app.post('/api/auth/register', (req, res) => {
     `).get(cleanPhone, String(otp_code).trim());
     if (otpRecord) {
       db.prepare('UPDATE sms_otp_verifications SET verified = 1 WHERE id = ?').run(otpRecord.id);
-      isVerified = true;
     }
-  }
-
-  if (!isVerified) {
-    const verifiedRecord = db.prepare(`
-      SELECT id FROM sms_otp_verifications 
-      WHERE phone = ? AND verified = 1 AND created_at > datetime('now', '-30 minutes', 'localtime')
-      ORDER BY id DESC LIMIT 1
-    `).get(cleanPhone);
-    if (verifiedRecord) {
-      isVerified = true;
-    }
-  }
-
-  if (!isVerified) {
-    return res.status(400).json({
-      error: 'Số điện thoại này chưa được xác minh qua SMS OTP. Vui lòng bấm "Gửi mã OTP" và nhập mã xác thực trước khi tạo tài khoản.',
-      requires_otp: true
-    });
   }
 
   // Vai trò: Mặc định là công dân (citizen), cho phép officer nếu được chọn
