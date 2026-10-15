@@ -28,6 +28,13 @@ async function testSmsOtpFlow() {
   };
 
   const testPhone = '0988112233';
+  const { db } = require('../database/db');
+  const oldUsers = db.prepare("SELECT id FROM users WHERE phone = ?").all(testPhone);
+  for (const u of oldUsers) {
+    db.prepare("DELETE FROM audit_logs WHERE user_id = ?").run(u.id);
+    db.prepare("DELETE FROM users WHERE id = ?").run(u.id);
+  }
+  db.prepare("DELETE FROM sms_otp_verifications WHERE phone = ?").run(testPhone);
 
   // 1. Kiểm tra chặn số điện thoại sai định dạng
   console.log('--- 1. Kiểm tra kiểm duyệt định dạng số điện thoại ---');
@@ -97,6 +104,7 @@ async function testSmsOtpFlow() {
     confirm_password: 'password123',
     full_name: 'Nguyễn Văn Đã Xác Minh OTP',
     phone: testPhone,
+    cccd: `00119800${randomSuffix}`,
     verification_token: verificationToken,
     otp_code: otpCode,
     role: 'citizen'

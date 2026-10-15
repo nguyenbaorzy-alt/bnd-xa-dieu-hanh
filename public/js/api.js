@@ -95,6 +95,13 @@ const API = {
     });
   },
 
+  async verifyCccd(cccd) {
+    return this.request('/api/auth/verify-cccd', {
+      method: 'POST',
+      body: JSON.stringify({ cccd })
+    });
+  },
+
   async register(userData) {
     const data = await this.request('/api/auth/register', {
       method: 'POST',

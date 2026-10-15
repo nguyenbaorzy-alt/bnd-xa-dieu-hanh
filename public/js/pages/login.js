@@ -85,10 +85,15 @@ const LoginPage = {
 
               <form id="login-form" class="space-y-3.5">
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">Tên đăng nhập</label>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="block font-bold text-slate-700">Tên đăng nhập / Số điện thoại / CCCD</label>
+                    <span class="text-[10px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      SĐT hoặc CCCD 12 số
+                    </span>
+                  </div>
                   <div class="relative">
-                    <input type="text" id="login-username" required placeholder="Nhập tên đăng nhập (VD: admin, chutich...)" class="w-full p-2.5 pl-9 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                    <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                    <input type="text" id="login-username" required placeholder="Nhập số điện thoại (VD: 0912345678), số CCCD hoặc tên tài khoản..." class="w-full p-2.5 pl-9 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                    <i data-lucide="user-check" class="w-4 h-4 text-blue-600 absolute left-3 top-3"></i>
                   </div>
                 </div>
 
@@ -186,9 +191,13 @@ const LoginPage = {
                     <span class="font-bold text-blue-900">📐 Cán bộ ĐC</span>
                     <code class="text-slate-500 font-mono">canbo_dc</code>
                   </button>
-                  <button type="button" onclick="LoginPage.fillForm('nguoidan', '123456')" class="p-1.5 rounded-lg bg-white border border-blue-200/80 hover:border-blue-400 hover:bg-blue-100/50 text-left transition flex items-center justify-between">
-                    <span class="font-bold text-emerald-900">👤 Người dân</span>
-                    <code class="text-slate-500 font-mono">nguoidan</code>
+                  <button type="button" onclick="LoginPage.fillForm('0912345678', '123456')" class="p-1.5 rounded-lg bg-white border border-blue-200/80 hover:border-blue-400 hover:bg-blue-100/50 text-left transition flex items-center justify-between">
+                    <span class="font-bold text-emerald-900">📱 Dân (SĐT)</span>
+                    <code class="text-slate-500 font-mono">0912345678</code>
+                  </button>
+                  <button type="button" onclick="LoginPage.fillForm('001195000007', '123456')" class="p-1.5 rounded-lg bg-white border border-blue-200/80 hover:border-blue-400 hover:bg-blue-100/50 text-left transition flex items-center justify-between">
+                    <span class="font-bold text-amber-900">🪪 Dân (CCCD)</span>
+                    <code class="text-slate-500 font-mono">001195...07</code>
                   </button>
                 </div>
               </div>
@@ -265,21 +274,53 @@ const LoginPage = {
                   </div>
                 </div>
 
-                <!-- Tên đăng nhập & Họ tên -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label class="block font-bold text-slate-700 mb-1">Tên đăng nhập * <span class="text-[10px] text-slate-400 font-normal">(viết liền, 3-30 ký tự)</span></label>
-                    <div class="relative">
-                      <input type="text" id="reg-username" required placeholder="VD: tran_van_an" pattern="[a-zA-Z0-9_.]+" minlength="3" maxlength="30" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                      <i data-lucide="at-sign" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                    </div>
-                  </div>
-
+                <!-- Họ và tên & Tên đăng nhập (cho cán bộ nếu cần) -->
+                <div class="space-y-3">
                   <div>
                     <label class="block font-bold text-slate-700 mb-1">Họ và tên đầy đủ *</label>
                     <div class="relative">
                       <input type="text" id="reg-fullname" required placeholder="VD: Trần Văn An" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
                       <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
+                    </div>
+                  </div>
+
+                  <div id="reg-username-container" class="hidden">
+                    <label class="block font-bold text-slate-700 mb-1">Tên đăng nhập nội bộ cán bộ <span class="text-[10px] text-slate-400 font-normal">(để trống sẽ tự lấy số điện thoại)</span></label>
+                    <div class="relative">
+                      <input type="text" id="reg-username" placeholder="VD: canbo_vp, tuan.hm..." pattern="[a-zA-Z0-9_.]*" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                      <i data-lucide="at-sign" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Căn cước công dân (CCCD 12 số chuẩn Đề án 06 / BCA) -->
+                <div class="p-3 bg-gradient-to-r from-amber-50/70 via-slate-50 to-amber-50/40 rounded-2xl border border-amber-200/90 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                      <i data-lucide="credit-card" class="w-4 h-4 text-amber-600"></i>
+                      <span>Số Căn cước công dân (CCCD 12 số gắn chip) *</span>
+                    </label>
+                    <button type="button" onclick="LoginPage.quickScanCccdDemo()" class="text-[10px] text-amber-800 bg-amber-200/70 hover:bg-amber-300 px-2 py-0.5 rounded-full font-bold transition flex items-center gap-1 shadow-2xs" title="Mô phỏng đọc chip/QR CCCD tự động">
+                      <i data-lucide="scan-line" class="w-3 h-3 text-amber-700"></i>
+                      <span>Mô phỏng quét QR CCCD</span>
+                    </button>
+                  </div>
+
+                  <div class="relative">
+                    <input type="text" id="reg-cccd" required placeholder="Nhập 12 số CCCD (VD: 001095012345)" maxlength="14" oninput="LoginPage.onCccdInput(this.value)" class="w-full p-2.5 pl-8 pr-10 rounded-xl border border-slate-200 bg-white font-mono font-bold tracking-wider text-xs focus:ring-2 focus:ring-amber-500 focus:outline-hidden">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-500 absolute left-2.5 top-3"></i>
+                    <span id="cccd-status-icon" class="absolute right-3 top-2.5 text-slate-400 flex items-center"></span>
+                  </div>
+
+                  <!-- Thẻ giải mã thông tin CCCD thời gian thực -->
+                  <div id="cccd-info-badge" class="hidden p-2.5 rounded-xl bg-white border border-amber-200 text-[11px] text-slate-700 space-y-1 shadow-2xs">
+                    <div class="flex items-center justify-between font-semibold">
+                      <span id="cccd-province" class="text-blue-900 font-bold">📍 Khai sinh: TP. Hà Nội</span>
+                      <span id="cccd-gender-year" class="text-amber-800">🚻 Nam • 1995 (31 tuổi)</span>
+                    </div>
+                    <div class="text-[10px] text-emerald-700 flex items-center gap-1 font-medium">
+                      <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i>
+                      <span>Định dạng hợp lệ chuẩn Đề án 06/BCA. Mỗi công dân duy nhất 1 tài khoản.</span>
                     </div>
                   </div>
                 </div>
@@ -516,22 +557,74 @@ const LoginPage = {
 
   onRoleChange(role) {
     const officerFields = document.getElementById('reg-officer-fields');
+    const usernameContainer = document.getElementById('reg-username-container');
     const labelCitizen = document.getElementById('reg-role-label-citizen');
     const labelOfficer = document.getElementById('reg-role-label-officer');
 
-    if (!officerFields || !labelCitizen || !labelOfficer) return;
+    if (!labelCitizen || !labelOfficer) return;
 
     if (role === 'officer') {
-      officerFields.classList.remove('hidden');
+      officerFields?.classList.remove('hidden');
+      usernameContainer?.classList.remove('hidden');
       labelOfficer.className = 'p-2.5 rounded-xl border-2 border-blue-600 bg-blue-50/40 cursor-pointer flex items-center gap-2 transition';
       labelCitizen.className = 'p-2.5 rounded-xl border border-slate-200 bg-white cursor-pointer flex items-center gap-2 transition hover:bg-slate-50';
     } else {
-      officerFields.classList.add('hidden');
+      officerFields?.classList.add('hidden');
+      usernameContainer?.classList.add('hidden');
       labelCitizen.className = 'p-2.5 rounded-xl border-2 border-blue-600 bg-blue-50/40 cursor-pointer flex items-center gap-2 transition';
       labelOfficer.className = 'p-2.5 rounded-xl border border-slate-200 bg-white cursor-pointer flex items-center gap-2 transition hover:bg-slate-50';
     }
 
     lucide.createIcons();
+  },
+
+  onCccdInput(val) {
+    const clean = String(val).replace(/\D/g, '');
+    const badge = document.getElementById('cccd-info-badge');
+    const statusIcon = document.getElementById('cccd-status-icon');
+
+    if (clean.length < 12) {
+      if (badge) badge.classList.add('hidden');
+      if (statusIcon) statusIcon.innerHTML = `<span class="text-[10px] text-slate-400 font-mono">${clean.length}/12</span>`;
+      return;
+    }
+
+    API.verifyCccd(clean).then(res => {
+      if (statusIcon) statusIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>`;
+      if (badge) {
+        badge.classList.remove('hidden');
+        const provEl = document.getElementById('cccd-province');
+        const gyEl = document.getElementById('cccd-gender-year');
+        if (provEl) provEl.innerText = `📍 Khai sinh: ${res.province}`;
+        if (gyEl) gyEl.innerText = `🚻 ${res.gender} • Năm sinh: ${res.birth_year} (${res.age} tuổi)`;
+        lucide.createIcons({ root: badge });
+      }
+      lucide.createIcons({ root: statusIcon });
+    }).catch(err => {
+      if (statusIcon) statusIcon.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-rose-500" title="${err.message}"></i>`;
+      if (badge) badge.classList.add('hidden');
+      lucide.createIcons({ root: statusIcon });
+    });
+  },
+
+  quickScanCccdDemo() {
+    const demoCccdList = [
+      { cccd: '001095018273', name: 'Nguyễn Văn Hải', gender: 'Nam', year: 1995, province: 'TP. Hà Nội' },
+      { cccd: '079198024519', name: 'Trần Thị Thu Thảo', gender: 'Nữ', year: 1998, province: 'TP. Hồ Chí Minh' },
+      { cccd: '031093011248', name: 'Lê Hoàng Long', gender: 'Nam', year: 1993, province: 'TP. Hải Phòng' },
+      { cccd: '038096009812', name: 'Phạm Minh Đức', gender: 'Nam', year: 1996, province: 'Thanh Hóa' }
+    ];
+    const randomItem = demoCccdList[Math.floor(Math.random() * demoCccdList.length)];
+    const cccdInput = document.getElementById('reg-cccd');
+    const nameInput = document.getElementById('reg-fullname');
+    if (cccdInput) {
+      cccdInput.value = randomItem.cccd;
+      this.onCccdInput(randomItem.cccd);
+    }
+    if (nameInput && !nameInput.value.trim()) {
+      nameInput.value = randomItem.name;
+    }
+    Modals.showToast(`Đã mô phỏng đọc chip CCCD thành công: ${randomItem.name} (${randomItem.cccd})`, 'success');
   },
 
   togglePassword(inputId, iconId) {
@@ -911,6 +1004,7 @@ const LoginPage = {
         const password = document.getElementById('reg-password')?.value;
         const confirmPassword = document.getElementById('reg-confirm-password')?.value;
         const phone = document.getElementById('reg-phone')?.value.trim();
+        const cccd = document.getElementById('reg-cccd')?.value.trim();
         const email = document.getElementById('reg-email')?.value.trim();
         const role = document.querySelector('input[name="reg-role"]:checked')?.value || 'citizen';
         const department = document.getElementById('reg-department')?.value || '';
@@ -918,8 +1012,14 @@ const LoginPage = {
         const regCaptchaAnswer = document.getElementById('reg-captcha-answer')?.value.trim();
         const btn = document.getElementById('register-submit-btn');
 
-        if (!username || !fullName || !password) {
-          Modals.showToast('Vui lòng điền đầy đủ các thông tin bắt buộc (*)', 'error');
+        if (!fullName || !password) {
+          Modals.showToast('Vui lòng điền đầy đủ họ và tên cùng mật khẩu', 'error');
+          return;
+        }
+
+        if (role === 'citizen' && !cccd) {
+          Modals.showToast('Vui lòng nhập số Căn cước công dân (CCCD 12 số) để xác thực định danh cá nhân', 'error');
+          document.getElementById('reg-cccd')?.focus();
           return;
         }
 
@@ -959,11 +1059,12 @@ const LoginPage = {
           }
 
           const res = await API.register({
-            username,
+            username: username || phone,
             password,
             confirm_password: confirmPassword,
             full_name: fullName,
             phone: LoginPage.verifiedPhone || phone,
+            cccd: cccd || '',
             email,
             role,
             department: role === 'officer' ? department : 'Công dân',

@@ -54,7 +54,9 @@ function runSeed() {
       department: 'Văn phòng - Thống kê',
       position: 'Quản trị viên CNTT',
       email: 'quantri.tantrieu@hanoi.gov.vn',
-      phone: '0981112233'
+      phone: '0981112233',
+      cccd: '001088000001',
+      is_phone_verified: 1
     },
     {
       id: 2,
@@ -65,7 +67,9 @@ function runSeed() {
       department: 'Lãnh đạo UBND',
       position: 'Chủ tịch UBND xã',
       email: 'thang.td@hanoi.gov.vn',
-      phone: '0912001122'
+      phone: '0912001122',
+      cccd: '001075000002',
+      is_phone_verified: 1
     },
     {
       id: 3,
@@ -76,7 +80,9 @@ function runSeed() {
       department: 'Lãnh đạo UBND',
       position: 'Phó Chủ tịch UBND xã (Phụ trách KT-ĐT)',
       email: 'mai.lt@hanoi.gov.vn',
-      phone: '0913998877'
+      phone: '0913998877',
+      cccd: '001182000003',
+      is_phone_verified: 1
     },
     {
       id: 4,
@@ -87,7 +93,9 @@ function runSeed() {
       department: 'Văn phòng - Thống kê',
       position: 'Chuyên viên Văn thư - Lưu trữ & Tổng hợp',
       email: 'cuong.ph@hanoi.gov.vn',
-      phone: '0977889900'
+      phone: '0977889900',
+      cccd: '001090000004',
+      is_phone_verified: 1
     },
     {
       id: 5,
@@ -98,7 +106,9 @@ function runSeed() {
       department: 'Địa chính - Xây dựng - Môi trường',
       position: 'Công chức Địa chính - Xây dựng - Đô thị & Môi trường',
       email: 'tuan.hm@hanoi.gov.vn',
-      phone: '0988665544'
+      phone: '0988665544',
+      cccd: '001089000005',
+      is_phone_verified: 1
     },
     {
       id: 6,
@@ -109,7 +119,9 @@ function runSeed() {
       department: 'Tư pháp - Hộ tịch',
       position: 'Công chức Tư pháp - Hộ tịch',
       email: 'ha.ttt@hanoi.gov.vn',
-      phone: '0904123987'
+      phone: '0904123987',
+      cccd: '001192000006',
+      is_phone_verified: 1
     },
     {
       id: 7,
@@ -120,7 +132,9 @@ function runSeed() {
       department: 'Người dân',
       position: 'Công dân',
       email: 'vuthilan.tt@gmail.com',
-      phone: '0912345678'
+      phone: '0912345678',
+      cccd: '001195000007',
+      is_phone_verified: 1
     },
     {
       id: 8,
@@ -131,13 +145,15 @@ function runSeed() {
       department: 'Người dân',
       position: 'Công dân',
       email: 'an.nguyen@gmail.com',
-      phone: '0988776655'
+      phone: '0988776655',
+      cccd: '001098000008',
+      is_phone_verified: 1
     }
   ];
 
   const insertUser = db.prepare(`
-    INSERT INTO users (id, username, password, full_name, role, department, position, email, phone)
-    VALUES (@id, @username, @password, @full_name, @role, @department, @position, @email, @phone)
+    INSERT INTO users (id, username, password, full_name, role, department, position, email, phone, cccd, is_phone_verified)
+    VALUES (@id, @username, @password, @full_name, @role, @department, @position, @email, @phone, @cccd, @is_phone_verified)
   `);
   for (const u of usersData) {
     insertUser.run(u);

@@ -36,6 +36,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Phân hệ An ninh mạng & Tường lửa Quản lý IP (B-Firewall Studio)
 const { securityRouter, getClientIp } = require('./routes/security');
+const { parseCccd } = require('./utils/cccd');
 
 // Middleware Tường lửa kiểm tra IP & Giám sát an ninh 24/7
 app.use((req, res, next) => {
@@ -184,11 +185,12 @@ function requireRole(...allowedRoles) {
 // 1. AUTHENTICATION & QUICK SWITCH APIS
 // ==========================================
 
-// Đăng nhập bằng tài khoản và mật khẩu
+// Đăng nhập bằng Tên tài khoản / Số điện thoại / Căn cước công dân (CCCD) và mật khẩu
 app.post('/api/auth/login', (req, res) => {
-  const { username, password, captcha_token, captcha_answer } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Vui lòng nhập tên đăng nhập và mật khẩu' });
+  const { username, login_id, password, captcha_token, captcha_answer } = req.body;
+  const rawIdentifier = String(login_id || username || '').trim();
+  if (!rawIdentifier || !password) {
+    return res.status(400).json({ error: 'Vui lòng nhập tên đăng nhập / số điện thoại / CCCD và mật khẩu' });
   }
 
   // Xác thực Robot Captcha nếu có gửi kèm
@@ -200,30 +202,47 @@ app.post('/api/auth/login', (req, res) => {
     db.prepare('DELETE FROM captcha_challenges WHERE id = ?').run(cpt.id);
   }
 
-  const cleanUsername = String(username).trim();
-  let user = db.prepare('SELECT * FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
+  const cleanPhone = rawIdentifier.replace(/[\s.-]/g, '');
+  const digitsOnly = rawIdentifier.replace(/\D/g, '');
+
+  let user = db.prepare(`
+    SELECT * FROM users 
+    WHERE LOWER(username) = LOWER(?)
+       OR phone = ?
+       OR phone = ?
+       OR (LENGTH(?) = 12 AND cccd = ?)
+       OR cccd = ?
+  `).get(rawIdentifier, rawIdentifier, cleanPhone, digitsOnly, digitsOnly, rawIdentifier);
+
   if (!user) {
     const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
     if (!userCount || userCount.count === 0) {
       console.log('Tự động nạp dữ liệu mẫu ban đầu do phát hiện chưa có người dùng...');
       runSeed();
-      user = db.prepare('SELECT * FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
+      user = db.prepare(`
+        SELECT * FROM users 
+        WHERE LOWER(username) = LOWER(?)
+           OR phone = ?
+           OR phone = ?
+           OR (LENGTH(?) = 12 AND cccd = ?)
+           OR cccd = ?
+      `).get(rawIdentifier, rawIdentifier, cleanPhone, digitsOnly, digitsOnly, rawIdentifier);
     }
   }
 
   if (!user || !user.is_active) {
-    return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không chính xác' });
+    return res.status(401).json({ error: 'Tài khoản, số điện thoại hoặc mật khẩu không chính xác' });
   }
 
   const match = bcrypt.compareSync(password, user.password);
   if (!match) {
-    return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không chính xác' });
+    return res.status(401).json({ error: 'Tài khoản, số điện thoại hoặc mật khẩu không chính xác' });
   }
 
   const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
   const { password: _, ...userInfo } = user;
 
-  logAudit(user.id, user.username, user.role, 'LOGIN', 'auth', user.id, `Đăng nhập hệ thống qua biểu mẫu`, req.ip);
+  logAudit(user.id, user.username, user.role, 'LOGIN', 'auth', user.id, `Đăng nhập hệ thống (${user.role}) qua tài khoản/SĐT/CCCD: ${rawIdentifier}`, req.ip);
 
   res.json({ token, user: userInfo });
 });
@@ -354,9 +373,24 @@ app.post('/api/auth/verify-otp', (req, res) => {
   });
 });
 
-// 3. Đăng ký / Tạo tài khoản mới (Bắt buộc xác thực SMS OTP)
+// 3. Đăng ký / Tạo tài khoản mới (Bắt buộc xác thực SMS OTP và CCCD 12 số)
 app.post('/api/auth/register', (req, res) => {
-  const { username, password, confirm_password, full_name, phone, email, role, department, position, verification_token, otp_code, captcha_token, captcha_answer } = req.body;
+  const {
+    username,
+    password,
+    confirm_password,
+    full_name,
+    phone,
+    cccd,
+    email,
+    role,
+    department,
+    position,
+    verification_token,
+    otp_code,
+    captcha_token,
+    captcha_answer
+  } = req.body;
 
   // Xác thực Robot Captcha nếu được gửi kèm
   if (captcha_token && captcha_answer) {
@@ -365,27 +399,6 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(400).json({ error: 'Mã xác minh Robot (Captcha) không chính xác hoặc đã hết hạn' });
     }
     db.prepare('DELETE FROM captcha_challenges WHERE id = ?').run(cpt.id);
-  }
-
-  if (!username || !String(username).trim()) {
-    return res.status(400).json({ error: 'Vui lòng nhập tên đăng nhập' });
-  }
-  const cleanUsername = String(username).trim().toLowerCase();
-
-  // Validate username
-  if (cleanUsername.length < 3 || cleanUsername.length > 30) {
-    return res.status(400).json({ error: 'Tên đăng nhập phải có độ dài từ 3 đến 30 ký tự' });
-  }
-  if (!/^[a-z0-9_.]+$/.test(cleanUsername)) {
-    return res.status(400).json({ error: 'Tên đăng nhập chỉ được chứa chữ cái không dấu, số, dấu gạch dưới (_) hoặc dấu chấm (.)' });
-  }
-
-  if (!password || String(password).length < 6) {
-    return res.status(400).json({ error: 'Mật khẩu phải có độ dài ít nhất 6 ký tự' });
-  }
-
-  if (confirm_password && password !== confirm_password) {
-    return res.status(400).json({ error: 'Mật khẩu xác nhận không khớp' });
   }
 
   if (!full_name || !String(full_name).trim()) {
@@ -401,10 +414,8 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(400).json({ error: 'Vui lòng nhập số điện thoại hợp lệ (10 số di động)' });
   }
 
-  // Kiểm tra xác thực SMS OTP của số điện thoại
+  // Kiểm tra xác thực SMS OTP của số điện thoại trước tiên
   let isVerified = false;
-
-  // Cách 1: Kiểm tra verification_token
   if (verification_token) {
     try {
       const decoded = jwt.verify(verification_token, JWT_SECRET);
@@ -414,7 +425,6 @@ app.post('/api/auth/register', (req, res) => {
     } catch (e) {}
   }
 
-  // Cách 2: Nếu gửi kèm mã otp_code trực tiếp
   if (!isVerified && otp_code) {
     const otpRecord = db.prepare(`
       SELECT * FROM sms_otp_verifications 
@@ -427,7 +437,6 @@ app.post('/api/auth/register', (req, res) => {
     }
   }
 
-  // Cách 3: Kiểm tra bản ghi đã xác minh gần nhất trong vòng 30 phút trong CSDL
   if (!isVerified) {
     const verifiedRecord = db.prepare(`
       SELECT id FROM sms_otp_verifications 
@@ -446,16 +455,56 @@ app.post('/api/auth/register', (req, res) => {
     });
   }
 
-  // Check existing username
-  const existing = db.prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
-  if (existing) {
-    return res.status(400).json({ error: 'Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.' });
+  // Vai trò: Mặc định là công dân (citizen), cho phép officer nếu được chọn
+  const assignedRole = role === 'officer' ? 'officer' : 'citizen';
+
+  // Với công dân: Tự động dùng chính Số điện thoại làm tên đăng nhập (không cần bắt người dân tạo username)
+  let cleanUsername = username ? String(username).trim().toLowerCase() : cleanPhone;
+  if (!cleanUsername) cleanUsername = cleanPhone;
+
+  if (cleanUsername.length < 3 || cleanUsername.length > 30) {
+    return res.status(400).json({ error: 'Tên định danh tài khoản phải có độ dài từ 3 đến 30 ký tự' });
   }
 
-  // Role: default citizen; allow officer if selected
-  let assignedRole = 'citizen';
-  if (role === 'officer') {
-    assignedRole = 'officer';
+  // Kiểm tra số điện thoại đã đăng ký chưa
+  const existingPhone = db.prepare('SELECT id FROM users WHERE phone = ?').get(cleanPhone);
+  if (existingPhone) {
+    return res.status(400).json({ error: `Số điện thoại [${cleanPhone}] đã được đăng ký tài khoản. Vui lòng đăng nhập hoặc dùng số khác.` });
+  }
+
+  // Kiểm tra tên tài khoản (nếu khác SĐT) đã đăng ký chưa
+  const existingUser = db.prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
+  if (existingUser) {
+    return res.status(400).json({ error: 'Tên định danh tài khoản này đã được sử dụng. Vui lòng chọn tên khác.' });
+  }
+
+  // Thẩm định Căn cước công dân (CCCD 12 số) theo Đề án 06 / Bộ Công An
+  let validCccd = null;
+  let cccdInfo = null;
+  if (assignedRole === 'citizen' || cccd) {
+    if (!cccd || !String(cccd).trim()) {
+      return res.status(400).json({ error: 'Vui lòng nhập số Căn cước công dân (CCCD 12 số) để xác thực định danh cá nhân' });
+    }
+    const cccdParsed = parseCccd(cccd);
+    if (!cccdParsed.valid) {
+      return res.status(400).json({ error: cccdParsed.error });
+    }
+    validCccd = cccdParsed.cccd;
+    cccdInfo = cccdParsed;
+
+    // Chặn trùng lặp CCCD (Mỗi công dân chỉ được cấp đúng 1 tài khoản)
+    const existingCccd = db.prepare('SELECT id, full_name FROM users WHERE cccd = ?').get(validCccd);
+    if (existingCccd) {
+      return res.status(400).json({ error: `Số CCCD [${validCccd}] đã được đăng ký trên hệ thống. Mỗi công dân chỉ được đăng ký duy nhất 1 tài khoản.` });
+    }
+  }
+
+  if (!password || String(password).length < 6) {
+    return res.status(400).json({ error: 'Mật khẩu phải có độ dài ít nhất 6 ký tự' });
+  }
+
+  if (confirm_password && password !== confirm_password) {
+    return res.status(400).json({ error: 'Mật khẩu xác nhận không khớp' });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -463,8 +512,8 @@ app.post('/api/auth/register', (req, res) => {
   const userPos = position ? String(position).trim() : (assignedRole === 'citizen' ? 'Công dân' : 'Cán bộ, chuyên viên');
 
   const stmt = db.prepare(`
-    INSERT INTO users (username, password, full_name, role, department, position, email, phone, is_phone_verified, phone_verified_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now', 'localtime'))
+    INSERT INTO users (username, password, full_name, role, department, position, email, phone, cccd, is_phone_verified, phone_verified_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now', 'localtime'))
   `);
 
   const info = stmt.run(
@@ -475,19 +524,39 @@ app.post('/api/auth/register', (req, res) => {
     userDept,
     userPos,
     email ? String(email).trim() : '',
-    cleanPhone
+    cleanPhone,
+    validCccd
   );
 
   const newUserId = info.lastInsertRowid;
   const token = jwt.sign({ id: newUserId, username: cleanUsername, role: assignedRole }, JWT_SECRET, { expiresIn: '7d' });
-  const newUser = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, is_active, is_phone_verified, created_at FROM users WHERE id = ?').get(newUserId);
+  const newUser = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, cccd, is_active, is_phone_verified, created_at FROM users WHERE id = ?').get(newUserId);
 
-  logAudit(newUserId, cleanUsername, assignedRole, 'REGISTER', 'auth', newUserId, `Tạo tài khoản mới thành công (${full_name})`, req.ip);
+  logAudit(newUserId, cleanUsername, assignedRole, 'REGISTER', 'auth', newUserId, `Tạo tài khoản mới thành công (${full_name}, SĐT: ${cleanPhone}, CCCD: ${validCccd || 'N/A'})`, req.ip);
 
   res.status(201).json({
     token,
     user: newUser,
+    cccd_info: cccdInfo,
     message: 'Tạo tài khoản thành công! Đang chuyển hướng...'
+  });
+});
+
+// API Thẩm định số Căn cước công dân thời gian thực (CCCD Validator API)
+app.post('/api/auth/verify-cccd', (req, res) => {
+  const { cccd } = req.body;
+  const result = parseCccd(cccd);
+  if (!result.valid) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  const existing = db.prepare('SELECT id FROM users WHERE cccd = ?').get(result.cccd);
+  res.json({
+    ...result,
+    is_registered: !!existing,
+    message: existing 
+      ? 'Số CCCD này đã được liên kết với một tài khoản trên hệ thống.' 
+      : `Số CCCD hợp lệ: ${result.province} | ${result.gender} | Sinh năm ${result.birth_year}`
   });
 });
 

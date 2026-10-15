@@ -378,6 +378,22 @@ function initSchema() {
       db.exec('ALTER TABLE users ADD COLUMN phone_verified_at TEXT;');
     } catch (e) {}
   }
+  if (!userCols.includes('cccd')) {
+    try {
+      db.exec('ALTER TABLE users ADD COLUMN cccd TEXT;');
+      db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_cccd ON users(cccd) WHERE cccd IS NOT NULL;');
+    } catch (e) {}
+  }
+  try {
+    db.exec('CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);');
+  } catch (e) {}
+
+  // Đảm bảo tài khoản demo có CCCD
+  try {
+    db.prepare("UPDATE users SET cccd = '001195000007', is_phone_verified = 1 WHERE username = 'nguoidan' AND (cccd IS NULL OR cccd = '')").run();
+    db.prepare("UPDATE users SET cccd = '001088000001', is_phone_verified = 1 WHERE username = 'admin' AND (cccd IS NULL OR cccd = '')").run();
+    db.prepare("UPDATE users SET cccd = '001075000002', is_phone_verified = 1 WHERE username = 'chutich' AND (cccd IS NULL OR cccd = '')").run();
+  } catch (e) {}
 
   // Migration: Tự động bổ sung các cột cho bảng tasks nếu chưa tồn tại
   const taskCols = db.prepare('PRAGMA table_info(tasks)').all().map(c => c.name);
@@ -413,7 +429,7 @@ function initSchema() {
   addCol('completion_proof_file', 'TEXT');
   addCol('six_clear_status', 'TEXT');
 
-  console.log('Database schema and KPI extensions initialized successfully.');
+  console.log('Database schema, CCCD fields and KPI extensions initialized successfully.');
 }
 
 // Hàm ghi log hoạt động
