@@ -309,6 +309,42 @@ function initSchema() {
       created_at TEXT DEFAULT (datetime('now', 'localtime'))
     );
 
+    -- Bảng nhật ký truy cập IP và giám sát an ninh mạng
+    CREATE TABLE IF NOT EXISTS ip_access_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip_address TEXT NOT NULL,
+      user_agent TEXT,
+      endpoint TEXT NOT NULL,
+      method TEXT NOT NULL,
+      status_code INTEGER,
+      username TEXT,
+      is_blocked INTEGER DEFAULT 0,
+      threat_level TEXT DEFAULT 'normal' CHECK(threat_level IN ('normal', 'suspicious', 'danger')),
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    -- Bảng quy tắc tường lửa IP (Blacklist / Whitelist)
+    CREATE TABLE IF NOT EXISTS ip_rules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip_address TEXT NOT NULL,
+      rule_type TEXT NOT NULL CHECK(rule_type IN ('blacklist', 'whitelist')),
+      reason TEXT NOT NULL,
+      created_by INTEGER REFERENCES users(id),
+      is_active INTEGER DEFAULT 1,
+      expires_at TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    -- Bảng thử thách CAPTCHA chống Bot tự động
+    CREATE TABLE IF NOT EXISTS captcha_challenges (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      token TEXT UNIQUE NOT NULL,
+      answer TEXT NOT NULL,
+      puzzle_type TEXT DEFAULT 'math',
+      expires_at TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
     -- Indexes để truy vấn nhanh
     CREATE INDEX IF NOT EXISTS idx_doc_out_status ON doc_out(status);
     CREATE INDEX IF NOT EXISTS idx_doc_out_creator ON doc_out(creator_id);
@@ -323,6 +359,9 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_kpi_proj_cat ON kpi_projects(category);
     CREATE INDEX IF NOT EXISTS idx_kpi_act_proj ON kpi_action_programs(project_id);
     CREATE INDEX IF NOT EXISTS idx_sms_otp_phone ON sms_otp_verifications(phone);
+    CREATE INDEX IF NOT EXISTS idx_ip_logs_ip ON ip_access_logs(ip_address);
+    CREATE INDEX IF NOT EXISTS idx_ip_rules_ip ON ip_rules(ip_address, is_active);
+    CREATE INDEX IF NOT EXISTS idx_captcha_token ON captcha_challenges(token);
   `;
 
   db.exec(schema);

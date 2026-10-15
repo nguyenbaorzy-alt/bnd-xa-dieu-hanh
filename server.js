@@ -34,6 +34,57 @@ if (!fs.existsSync(uploadsDir)) {
 app.use('/uploads', express.static(uploadsDir));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Phân hệ An ninh mạng & Tường lửa Quản lý IP (B-Firewall Studio)
+const { securityRouter, getClientIp } = require('./routes/security');
+
+// Middleware Tường lửa kiểm tra IP & Giám sát an ninh 24/7
+app.use((req, res, next) => {
+  const clientIp = getClientIp(req);
+
+  try {
+    // 1. Kiểm tra danh sách đen Blacklist
+    const blockedRule = db.prepare(`
+      SELECT * FROM ip_rules 
+      WHERE ip_address = ? AND rule_type = 'blacklist' AND is_active = 1
+    `).get(clientIp);
+
+    if (blockedRule) {
+      db.prepare(`
+        INSERT INTO ip_access_logs (ip_address, user_agent, endpoint, method, status_code, is_blocked, threat_level)
+        VALUES (?, ?, ?, ?, 403, 1, 'danger')
+      `).run(clientIp, (req.headers['user-agent'] || '').substring(0, 150), req.path, req.method);
+
+      return res.status(403).json({
+        error: 'TRUY CẬP BỊ TỪ CHỐI BỞI TƯỜNG LỬA AN NINH MẠNG UBND XÃ',
+        ip: clientIp,
+        reason: blockedRule.reason || 'Địa chỉ IP nằm trong danh sách đen cảnh báo an ninh',
+        blocked_at: blockedRule.created_at,
+        support: 'Vui lòng liên hệ Quản trị viên hệ thống UBND Xã Tân Triều để được kiểm tra và gỡ chặn.'
+      });
+    }
+
+    // 2. Ghi nhật ký truy cập API để phục vụ dashboard giám sát
+    if (req.path.startsWith('/api/') && !req.path.includes('/security/ip-logs')) {
+      const isSensitive = req.path.includes('/auth/') || req.path.includes('/security/');
+      db.prepare(`
+        INSERT INTO ip_access_logs (ip_address, user_agent, endpoint, method, status_code, is_blocked, threat_level)
+        VALUES (?, ?, ?, ?, 200, 0, ?)
+      `).run(
+        clientIp,
+        (req.headers['user-agent'] || '').substring(0, 150),
+        req.path,
+        req.method,
+        isSensitive ? 'suspicious' : 'normal'
+      );
+    }
+  } catch (err) {}
+
+  next();
+});
+
+// Phân hệ An ninh mạng & Captcha APIs
+app.use('/api/security', securityRouter);
+
 // Phân hệ HanoiWork OKR/KPI & Trợ lý AI Assistant
 const kpiRouter = require('./routes/kpi');
 app.use('/api', kpiRouter);
@@ -135,9 +186,18 @@ function requireRole(...allowedRoles) {
 
 // Đăng nhập bằng tài khoản và mật khẩu
 app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, captcha_token, captcha_answer } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'Vui lòng nhập tên đăng nhập và mật khẩu' });
+  }
+
+  // Xác thực Robot Captcha nếu có gửi kèm
+  if (captcha_token && captcha_answer) {
+    const cpt = db.prepare("SELECT * FROM captcha_challenges WHERE token = ? AND expires_at > datetime('now', 'localtime')").get(captcha_token);
+    if (!cpt || cpt.answer.trim() !== String(captcha_answer).trim()) {
+      return res.status(400).json({ error: 'Mã xác minh Robot (Captcha) không chính xác hoặc đã hết hạn' });
+    }
+    db.prepare('DELETE FROM captcha_challenges WHERE id = ?').run(cpt.id);
   }
 
   const cleanUsername = String(username).trim();
@@ -296,7 +356,16 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
 // 3. Đăng ký / Tạo tài khoản mới (Bắt buộc xác thực SMS OTP)
 app.post('/api/auth/register', (req, res) => {
-  const { username, password, confirm_password, full_name, phone, email, role, department, position, verification_token, otp_code } = req.body;
+  const { username, password, confirm_password, full_name, phone, email, role, department, position, verification_token, otp_code, captcha_token, captcha_answer } = req.body;
+
+  // Xác thực Robot Captcha nếu được gửi kèm
+  if (captcha_token && captcha_answer) {
+    const cpt = db.prepare("SELECT * FROM captcha_challenges WHERE token = ? AND expires_at > datetime('now', 'localtime')").get(captcha_token);
+    if (!cpt || cpt.answer.trim() !== String(captcha_answer).trim()) {
+      return res.status(400).json({ error: 'Mã xác minh Robot (Captcha) không chính xác hoặc đã hết hạn' });
+    }
+    db.prepare('DELETE FROM captcha_challenges WHERE id = ?').run(cpt.id);
+  }
 
   if (!username || !String(username).trim()) {
     return res.status(400).json({ error: 'Vui lòng nhập tên đăng nhập' });

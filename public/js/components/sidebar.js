@@ -190,6 +190,10 @@ const Sidebar = {
                   <i data-lucide="history" class="w-4 h-4 shrink-0"></i>
                   <span>Nhật ký hoạt động</span>
                 </a>
+                <a href="#ip-security" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isActive('ip-security')}">
+                  <i data-lucide="shield-alert" class="w-4 h-4 shrink-0 text-rose-400"></i>
+                  <span>Quản lý IP & Tường lửa</span>
+                </a>
               ` : ''}
             </div>
           </div>

@@ -106,6 +106,39 @@ const LoginPage = {
                   </div>
                 </div>
 
+                <!-- Khung xác minh Robot (B-Firewall™ Captcha) -->
+                <div class="p-3 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-2">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <label class="font-bold text-slate-700 flex items-center gap-1.5">
+                      <i data-lucide="bot" class="w-3.5 h-3.5 text-blue-600"></i>
+                      <span>Xác minh Robot (B-Firewall™ Shield)</span>
+                    </label>
+                    <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
+                      Bảo vệ phiên
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <div id="login-captcha-container" class="shrink-0 flex items-center justify-center bg-slate-900 rounded-xl overflow-hidden shadow-inner cursor-pointer select-none" onclick="LoginPage.refreshCaptcha('login')" title="Bấm để đổi mã khác">
+                      <div id="login-captcha-svg" class="flex items-center justify-center min-w-[130px] h-[40px] text-slate-400 text-[10px] px-1">
+                        <span class="animate-pulse">Đang tải mã...</span>
+                      </div>
+                    </div>
+
+                    <button type="button" onclick="LoginPage.refreshCaptcha('login')" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition shrink-0" title="Đổi câu hỏi khác">
+                      <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+
+                    <div class="flex-1">
+                      <input type="text" id="login-captcha-answer" placeholder="Kết quả = ?" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-mono font-bold text-center text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                    </div>
+                  </div>
+                  <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                    <span>Tính nhẩm phép tính và nhập số vào ô bên</span>
+                    <span class="text-blue-600 font-medium">Bảo mật cấp xã</span>
+                  </div>
+                </div>
+
                 <div class="flex items-center justify-between text-[11px] text-slate-600">
                   <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" id="login-remember" checked class="w-3.5 h-3.5 rounded text-blue-600 border-slate-300">
@@ -367,6 +400,38 @@ const LoginPage = {
                   </div>
                 </div>
 
+                <!-- Khung xác minh Robot Register (B-Firewall™ Captcha) -->
+                <div class="p-3 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-2">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <label class="font-bold text-slate-700 flex items-center gap-1.5">
+                      <i data-lucide="bot" class="w-3.5 h-3.5 text-blue-600"></i>
+                      <span>Xác minh Robot (B-Firewall™ Shield)</span>
+                    </label>
+                    <span class="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-bold border border-blue-200">
+                      Chống spam BOT
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <div id="reg-captcha-container" class="shrink-0 flex items-center justify-center bg-slate-900 rounded-xl overflow-hidden shadow-inner cursor-pointer select-none" onclick="LoginPage.refreshCaptcha('register')" title="Bấm để đổi mã khác">
+                      <div id="reg-captcha-svg" class="flex items-center justify-center min-w-[130px] h-[40px] text-slate-400 text-[10px] px-1">
+                        <span class="animate-pulse">Đang tải mã...</span>
+                      </div>
+                    </div>
+
+                    <button type="button" onclick="LoginPage.refreshCaptcha('register')" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition shrink-0" title="Đổi câu hỏi khác">
+                      <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+
+                    <div class="flex-1">
+                      <input type="text" id="reg-captcha-answer" placeholder="Kết quả = ?" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-mono font-bold text-center text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                    </div>
+                  </div>
+                  <div class="text-[10px] text-slate-400">
+                    Nhập kết quả phép tính bảo mật để kích hoạt tài khoản
+                  </div>
+                </div>
+
                 <div class="pt-1">
                   <button type="submit" id="register-submit-btn" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs">
                     <i data-lucide="user-check" class="w-4 h-4"></i>
@@ -408,15 +473,45 @@ const LoginPage = {
 
       btnLogin.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-blue-900 shadow-xs';
       btnRegister.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+      if (!this.loginCaptchaToken) this.refreshCaptcha('login');
     } else {
       panelLogin.classList.add('hidden');
       panelRegister.classList.remove('hidden');
 
       btnRegister.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-emerald-900 shadow-xs';
       btnLogin.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+      if (!this.regCaptchaToken) this.refreshCaptcha('register');
     }
 
     lucide.createIcons();
+  },
+
+  loginCaptchaToken: null,
+  regCaptchaToken: null,
+
+  async refreshCaptcha(formType = 'login') {
+    try {
+      const res = await API.getCaptcha();
+      if (formType === 'login') {
+        this.loginCaptchaToken = res.token;
+        const container = document.getElementById('login-captcha-svg');
+        const ansInput = document.getElementById('login-captcha-answer');
+        if (container) {
+          container.innerHTML = `<img src="${res.svg}" alt="B-Firewall Captcha" class="h-9 w-auto select-none rounded">`;
+        }
+        if (ansInput) ansInput.value = '';
+      } else {
+        this.regCaptchaToken = res.token;
+        const container = document.getElementById('reg-captcha-svg');
+        const ansInput = document.getElementById('reg-captcha-answer');
+        if (container) {
+          container.innerHTML = `<img src="${res.svg}" alt="B-Firewall Captcha" class="h-9 w-auto select-none rounded">`;
+        }
+        if (ansInput) ansInput.value = '';
+      }
+    } catch (e) {
+      console.error('Lỗi tải captcha:', e);
+    }
   },
 
   onRoleChange(role) {
@@ -755,6 +850,9 @@ const LoginPage = {
   },
 
   async afterRender() {
+    // Tự động tải Captcha bảo vệ phiên đăng nhập
+    this.refreshCaptcha('login');
+
     // 1. Gắn sự kiện Form Đăng nhập
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -762,10 +860,17 @@ const LoginPage = {
         e.preventDefault();
         const username = document.getElementById('login-username')?.value.trim();
         const password = document.getElementById('login-password')?.value;
+        const captchaAnswer = document.getElementById('login-captcha-answer')?.value.trim();
         const btn = document.getElementById('login-submit-btn');
 
         if (!username || !password) {
           Modals.showToast('Vui lòng nhập tên đăng nhập và mật khẩu', 'error');
+          return;
+        }
+
+        if (!captchaAnswer) {
+          Modals.showToast('Vui lòng nhập kết quả xác minh chống Robot (B-Firewall™)', 'error');
+          document.getElementById('login-captcha-answer')?.focus();
           return;
         }
 
@@ -775,7 +880,7 @@ const LoginPage = {
             btn.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang xác thực...`;
           }
 
-          const res = await API.login(username, password);
+          const res = await API.login(username, password, LoginPage.loginCaptchaToken, captchaAnswer);
           Modals.showToast(`Đăng nhập thành công! Xin chào ${res.user.full_name}`, 'success');
           
           if (res.user.role === 'citizen') {
@@ -785,6 +890,7 @@ const LoginPage = {
           }
         } catch (err) {
           Modals.showToast(err.message, 'error');
+          LoginPage.refreshCaptcha('login');
         } finally {
           if (btn) {
             btn.disabled = false;
@@ -809,6 +915,7 @@ const LoginPage = {
         const role = document.querySelector('input[name="reg-role"]:checked')?.value || 'citizen';
         const department = document.getElementById('reg-department')?.value || '';
         const position = document.getElementById('reg-position')?.value || '';
+        const regCaptchaAnswer = document.getElementById('reg-captcha-answer')?.value.trim();
         const btn = document.getElementById('register-submit-btn');
 
         if (!username || !fullName || !password) {
@@ -839,6 +946,12 @@ const LoginPage = {
           return;
         }
 
+        if (!regCaptchaAnswer) {
+          Modals.showToast('Vui lòng nhập kết quả xác minh chống Robot (B-Firewall™)', 'error');
+          document.getElementById('reg-captcha-answer')?.focus();
+          return;
+        }
+
         try {
           if (btn) {
             btn.disabled = true;
@@ -856,7 +969,9 @@ const LoginPage = {
             department: role === 'officer' ? department : 'Công dân',
             position: role === 'officer' ? position : 'Công dân',
             verification_token: LoginPage.verificationToken,
-            otp_code: LoginPage.verifiedOtpCode
+            otp_code: LoginPage.verifiedOtpCode,
+            captcha_token: LoginPage.regCaptchaToken,
+            captcha_answer: regCaptchaAnswer
           });
 
           Modals.showToast(res.message || 'Tạo tài khoản thành công!', 'success');
@@ -872,6 +987,7 @@ const LoginPage = {
 
         } catch (err) {
           Modals.showToast(err.message, 'error');
+          LoginPage.refreshCaptcha('register');
         } finally {
           if (btn) {
             btn.disabled = false;

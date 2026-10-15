@@ -65,10 +65,15 @@ const API = {
   },
 
   // Auth
-  async login(username, password) {
+  async login(username, password, captcha_token = null, captcha_answer = null) {
+    const payload = { username, password };
+    if (captcha_token && captcha_answer) {
+      payload.captcha_token = captcha_token;
+      payload.captcha_answer = captcha_answer;
+    }
     const data = await this.request('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify(payload)
     });
     this.setToken(data.token);
     this.setUser(data.user);
@@ -112,11 +117,43 @@ const API = {
     return data;
   },
 
-  logout() {
+  async logout() {
     this.setToken(null);
     this.setUser(null);
     window.dispatchEvent(new CustomEvent('auth-changed'));
     window.location.hash = '#login';
+  },
+
+  // An ninh mạng, Tường lửa IP & Captcha
+  async getCaptcha() {
+    return this.request('/api/security/captcha/generate');
+  },
+  async verifyCaptcha(token, answer) {
+    return this.request('/api/security/captcha/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token, answer })
+    });
+  },
+  async getSecurityStats() {
+    return this.request('/api/security/stats');
+  },
+  async getIpLogs(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/api/security/ip-logs?${query}`);
+  },
+  async getIpRules() {
+    return this.request('/api/security/ip-rules');
+  },
+  async addIpRule(data) {
+    return this.request('/api/security/ip-rules', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  async deleteIpRule(id) {
+    return this.request(`/api/security/ip-rules/${id}`, {
+      method: 'DELETE'
+    });
   },
 
   async getMe() {
@@ -553,6 +590,40 @@ const API = {
     return this.request('/api/kpi/algo/apply', {
       method: 'POST',
       body: JSON.stringify(algoConfig)
+    });
+  },
+
+  // ==========================================
+  // B-Firewall™ & Phân hệ An ninh mạng & Captcha
+  // ==========================================
+  async getCaptcha() {
+    return this.request('/api/security/captcha/generate');
+  },
+  async verifyCaptcha(token, answer) {
+    return this.request('/api/security/captcha/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token, answer })
+    });
+  },
+  async getSecurityStats() {
+    return this.request('/api/security/stats');
+  },
+  async getIpLogs(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/api/security/ip-logs?${query}`);
+  },
+  async getIpRules() {
+    return this.request('/api/security/ip-rules');
+  },
+  async addIpRule(data) {
+    return this.request('/api/security/ip-rules', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  async deleteIpRule(id) {
+    return this.request(`/api/security/ip-rules/${id}`, {
+      method: 'DELETE'
     });
   }
 };

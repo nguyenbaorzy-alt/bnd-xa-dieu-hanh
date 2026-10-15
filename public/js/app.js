@@ -26,7 +26,8 @@ const App = {
     'roles': RoleManagementPage,
     'unit-settings': UnitSettingsPage,
     'workflows': WorkflowSettingsPage,
-    'audit-logs': AuditLogsPage
+    'audit-logs': AuditLogsPage,
+    'ip-security': IpSecurityPage
   },
 
   currentRoute: 'dashboard',
