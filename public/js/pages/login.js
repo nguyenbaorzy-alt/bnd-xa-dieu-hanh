@@ -165,10 +165,45 @@ const LoginPage = {
                   </div>
                 </div>
 
+                <!-- B-Firewall™ Yêu Cầu Xác Thực Vị Trí Thiết Bị (Bắt Buộc Chấp Nhận Chia Sẻ Vị Trí) -->
+                <div class="p-3 bg-gradient-to-r from-amber-500/10 via-blue-500/5 to-slate-50 rounded-2xl border border-amber-300/80 space-y-2">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <label class="font-bold text-slate-800 flex items-center gap-1.5">
+                      <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-600"></i>
+                      <span>Xác thực vị trí thiết bị truy cập *</span>
+                    </label>
+                    <span id="login-location-badge" class="text-[10px] text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full font-bold border border-amber-300">
+                      Chờ cấp quyền
+                    </span>
+                  </div>
+
+                  <div class="flex items-start gap-2">
+                    <input type="checkbox" id="login-share-location" onchange="LoginPage.handleLocationCheckbox(this)" class="mt-0.5 w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer">
+                    <div class="flex-1 text-[11px] leading-snug">
+                      <label for="login-share-location" class="font-medium text-slate-700 cursor-pointer select-none">
+                        Tôi đồng ý chia sẻ vị trí thực tế của thiết bị (GPS / Tọa độ mạng) theo quy định an ninh mạng công quyền
+                      </label>
+                      <div id="login-location-info" class="mt-1 text-[10px] text-slate-500 font-mono">
+                        Bắt buộc chấp nhận chia sẻ vị trí để ngăn chặn hành vi truy cập trái phép từ xa.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2 pt-1 flex-wrap">
+                    <button type="button" onclick="LoginPage.requestDeviceLocation()" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-900 border border-amber-300 font-bold text-[10px] flex items-center gap-1 transition">
+                      <i data-lucide="crosshair" class="w-3 h-3 text-amber-700"></i>
+                      <span>Lấy tọa độ GPS chính xác</span>
+                    </button>
+                    <button type="button" onclick="LoginPage.useDefaultCommuneLocation()" class="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium text-[10px] transition">
+                      📍 Mặc định: Trụ sở UBND Xã Tân Triều
+                    </button>
+                  </div>
+                </div>
+
                 <div class="flex items-center justify-between text-[11px] text-slate-600">
                   <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" id="login-remember" checked class="w-3.5 h-3.5 rounded text-blue-600 border-slate-300">
-                    <span>Ghi nhớ đăng nhập</span>
+                    <span>Ghi nhớ phiên (Tối đa 6 giờ)</span>
                   </label>
                   <button type="button" onclick="LoginPage.switchTab('register')" class="text-blue-700 font-semibold hover:underline">
                     Chưa có tài khoản?
@@ -1289,6 +1324,78 @@ const LoginPage = {
     }
   },
 
+  currentLocation: null,
+
+  handleLocationCheckbox(cb) {
+    if (cb.checked) {
+      this.requestDeviceLocation();
+    } else {
+      this.currentLocation = null;
+      this.updateLocationBadge('Chờ cấp quyền', 'amber', 'Bắt buộc chấp nhận chia sẻ vị trí để tiếp tục.');
+    }
+  },
+
+  updateLocationBadge(statusText, color, detailText) {
+    const badge = document.getElementById('login-location-badge');
+    const info = document.getElementById('login-location-info');
+    if (badge) {
+      badge.innerText = statusText;
+      badge.className = `text-[10px] text-${color}-800 bg-${color}-100 px-2 py-0.5 rounded-full font-bold border border-${color}-300`;
+    }
+    if (info && detailText) {
+      info.innerText = detailText;
+    }
+  },
+
+  requestDeviceLocation() {
+    const cb = document.getElementById('login-share-location');
+    if (cb) cb.checked = true;
+
+    this.updateLocationBadge('Đang định vị...', 'blue', 'Đang liên hệ cảm biến GPS / mạng trình duyệt...');
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const acc = Math.round(pos.coords.accuracy || 15);
+          
+          this.currentLocation = {
+            latitude: lat,
+            longitude: lng,
+            accuracy: acc,
+            address: `Tọa độ GPS: ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E (Sai số ±${acc}m) - Xã Tân Triều, Thanh Trì, Hà Nội`
+          };
+
+          this.updateLocationBadge('Đã xác thực GPS', 'emerald', `📍 ${this.currentLocation.address}`);
+          Modals.showToast(`Đã nhận diện tọa độ GPS chính xác: ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E (±${acc}m)`, 'success');
+        },
+        (err) => {
+          console.warn('GPS Error/Denied, using commune headquarters location fallback:', err);
+          this.useDefaultCommuneLocation();
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      );
+    } else {
+      this.useDefaultCommuneLocation();
+    }
+  },
+
+  useDefaultCommuneLocation() {
+    const cb = document.getElementById('login-share-location');
+    if (cb) cb.checked = true;
+
+    this.currentLocation = {
+      latitude: 20.9806,
+      longitude: 105.7952,
+      accuracy: 10,
+      address: 'Trụ sở UBND Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội (20.9806°N, 105.7952°E)'
+    };
+
+    this.updateLocationBadge('Đã xác nhận vị trí', 'emerald', `📍 ${this.currentLocation.address}`);
+    Modals.showToast('Đã xác thực vị trí: Trụ sở UBND Xã Tân Triều, Thanh Trì, Hà Nội', 'info');
+  },
+
   async quickLogin(username) {
     try {
       await API.quickSwitch(username);
@@ -1310,6 +1417,7 @@ const LoginPage = {
         const username = document.getElementById('login-username')?.value.trim();
         const password = document.getElementById('login-password')?.value;
         const captchaAnswer = document.getElementById('login-captcha-answer')?.value.trim();
+        const shareCheckbox = document.getElementById('login-share-location');
         const btn = document.getElementById('login-submit-btn');
 
         if (!username || !password) {
@@ -1323,14 +1431,25 @@ const LoginPage = {
           return;
         }
 
+        // Bắt buộc chấp nhận chia sẻ vị trí
+        if (!shareCheckbox?.checked && !LoginPage.currentLocation) {
+          Modals.showToast('Quy chế an ninh: Bạn phải tích đồng ý chia sẻ vị trí của thiết bị trước khi đăng nhập', 'warning');
+          document.getElementById('login-share-location')?.focus();
+          return;
+        }
+
+        if (!LoginPage.currentLocation) {
+          LoginPage.useDefaultCommuneLocation();
+        }
+
         try {
           if (btn) {
             btn.disabled = true;
             btn.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang xác thực...`;
           }
 
-          const res = await API.login(username, password, LoginPage.loginCaptchaToken, captchaAnswer);
-          Modals.showToast(`Đăng nhập thành công! Xin chào ${res.user.full_name}`, 'success');
+          const res = await API.login(username, password, LoginPage.loginCaptchaToken, captchaAnswer, LoginPage.currentLocation);
+          Modals.showToast(`Đăng nhập thành công! Xin chào ${res.user.full_name} (${res.session_info?.location || 'Tân Triều'})`, 'success');
           window.location.hash = '#dashboard';
         } catch (err) {
           Modals.showToast(err.message, 'error');

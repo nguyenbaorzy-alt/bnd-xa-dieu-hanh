@@ -25,6 +25,32 @@ const API = {
     else localStorage.removeItem('ubnd_user');
   },
 
+  isSessionValid() {
+    const token = this.getToken();
+    const user = this.getUser();
+    const loginTimeStr = localStorage.getItem('ubnd_login_time');
+    if (!token || !user) return false;
+    if (!loginTimeStr) return false;
+
+    const loginTime = parseInt(loginTimeStr, 10);
+    const SIX_HOURS_MS = 6 * 60 * 60 * 1000; // 6 tiếng
+    const elapsed = Date.now() - loginTime;
+    if (isNaN(loginTime) || elapsed > SIX_HOURS_MS || elapsed < 0) {
+      this.logout(false);
+      return false;
+    }
+    return true;
+  },
+
+  getSessionRemainingMs() {
+    const loginTimeStr = localStorage.getItem('ubnd_login_time');
+    if (!loginTimeStr) return 0;
+    const loginTime = parseInt(loginTimeStr, 10);
+    const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+    const remaining = SIX_HOURS_MS - (Date.now() - loginTime);
+    return Math.max(0, remaining);
+  },
+
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = options.headers || {};
@@ -65,11 +91,14 @@ const API = {
   },
 
   // Auth
-  async login(username, password, captcha_token = null, captcha_answer = null) {
+  async login(username, password, captcha_token = null, captcha_answer = null, location = null) {
     const payload = { username, password };
     if (captcha_token && captcha_answer) {
       payload.captcha_token = captcha_token;
       payload.captcha_answer = captcha_answer;
+    }
+    if (location) {
+      payload.location = location;
     }
     const data = await this.request('/api/auth/login', {
       method: 'POST',
@@ -77,6 +106,10 @@ const API = {
     });
     this.setToken(data.token);
     this.setUser(data.user);
+    localStorage.setItem('ubnd_login_time', Date.now().toString());
+    if (data.session_info?.location) {
+      localStorage.setItem('ubnd_last_location', data.session_info.location);
+    }
     window.dispatchEvent(new CustomEvent('auth-changed'));
     return data;
   },
@@ -158,6 +191,7 @@ const API = {
     });
     this.setToken(data.token);
     this.setUser(data.user);
+    localStorage.setItem('ubnd_login_time', Date.now().toString());
     window.dispatchEvent(new CustomEvent('auth-changed'));
     return data;
   },
@@ -169,15 +203,30 @@ const API = {
     });
     this.setToken(data.token);
     this.setUser(data.user);
+    localStorage.setItem('ubnd_login_time', Date.now().toString());
     window.dispatchEvent(new CustomEvent('auth-changed'));
     return data;
   },
 
-  async logout() {
+  async logout(redirect = true) {
     this.setToken(null);
     this.setUser(null);
+    localStorage.removeItem('ubnd_login_time');
+    localStorage.removeItem('ubnd_last_location');
     window.dispatchEvent(new CustomEvent('auth-changed'));
-    window.location.hash = '#login';
+    if (redirect) {
+      window.location.hash = '#login';
+    }
+  },
+
+  async sendSecurityPulse(locationData = null) {
+    if (locationData) {
+      return this.request('/api/security/pulse', {
+        method: 'POST',
+        body: JSON.stringify(locationData)
+      });
+    }
+    return this.request('/api/security/pulse');
   },
 
   // An ninh mạng, Tường lửa IP & Captcha
@@ -693,3 +742,50 @@ const API = {
 };
 
 window.API = API;
+
+/**
+ * Định dạng thời gian chuẩn múi giờ Hà Nội (GMT+7)
+ * Ví dụ: 13:45:20 15/10/2026 (Giờ Hà Nội)
+ */
+window.formatVietnamTime = function(dateStr) {
+  if (!dateStr) return '--';
+  try {
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(dateStr)) {
+      const [datePart, timePart] = dateStr.split(' ');
+      const [y, m, day] = datePart.split('-');
+      return `${timePart} ${day}/${m}/${y} (Giờ Hà Nội)`;
+    }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return new Intl.DateTimeFormat('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour12: false
+    }).format(d) + ' (Giờ Hà Nội)';
+  } catch(e) {
+    return dateStr;
+  }
+};
+
+/**
+ * Định dạng ngày chuẩn Việt Nam (DD/MM/YYYY)
+ */
+window.formatVietnamDate = function(dateStr) {
+  if (!dateStr) return '--';
+  try {
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+      const [y, m, day] = dateStr.substring(0, 10).split('-');
+      return `${day}/${m}/${y}`;
+    }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return new Intl.DateTimeFormat('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      day: '2-digit', month: '2-digit', year: 'numeric'
+    }).format(d);
+  } catch(e) {
+    return dateStr;
+  }
+};
+

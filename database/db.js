@@ -1,3 +1,5 @@
+process.env.TZ = 'Asia/Ho_Chi_Minh';
+
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
@@ -8,6 +10,26 @@ const db = new Database(dbPath);
 // Enable WAL mode and foreign keys for high performance and integrity
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
+
+/**
+ * Trả về thời gian chuẩn múi giờ Hà Nội (GMT+7 / Asia/Ho_Chi_Minh)
+ * Định dạng: YYYY-MM-DD HH:mm:ss
+ */
+function getVietnamNow() {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(new Date());
+  const map = {};
+  parts.forEach(p => map[p.type] = p.value);
+  return `${map.year}-${map.month}-${map.day} ${map.hour}:${map.minute}:${map.second}`;
+}
 
 function initSchema() {
   const schema = `
@@ -508,17 +530,39 @@ function initSchema() {
   addCol('completion_proof_file', 'TEXT');
   addCol('six_clear_status', 'TEXT');
 
-  console.log('Database schema, CCCD fields and KPI extensions initialized successfully.');
+  // Migration: Bổ sung tọa độ GPS và thông tin đăng nhập thiết bị
+  const addTableCol = (tbl, col, type) => {
+    try {
+      const cols = db.prepare(`PRAGMA table_info(${tbl})`).all().map(c => c.name);
+      if (!cols.includes(col)) {
+        db.exec(`ALTER TABLE ${tbl} ADD COLUMN ${col} ${type};`);
+      }
+    } catch (e) {}
+  };
+
+  addTableCol('users', 'last_login_at', 'TEXT');
+  addTableCol('users', 'last_login_ip', 'TEXT');
+  addTableCol('users', 'last_login_location', 'TEXT');
+  addTableCol('users', 'last_login_latitude', 'REAL');
+  addTableCol('users', 'last_login_longitude', 'REAL');
+  addTableCol('users', 'last_login_accuracy', 'REAL');
+
+  addTableCol('ip_access_logs', 'latitude', 'REAL');
+  addTableCol('ip_access_logs', 'longitude', 'REAL');
+  addTableCol('ip_access_logs', 'exact_location', 'TEXT');
+
+  console.log('Database schema, CCCD fields, GPS location and KPI extensions initialized successfully.');
 }
 
 // Hàm ghi log hoạt động
 function logAudit(userId, username, role, action, targetType, targetId, description, ipAddress = '127.0.0.1') {
   try {
+    const vnTime = getVietnamNow();
     const stmt = db.prepare(`
-      INSERT INTO audit_logs (user_id, username, role, action, target_type, target_id, description, ip_address)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO audit_logs (user_id, username, role, action, target_type, target_id, description, ip_address, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    stmt.run(userId, username, role, action, targetType, String(targetId || ''), description, ipAddress);
+    stmt.run(userId, username, role, action, targetType, String(targetId || ''), description, ipAddress, vnTime);
   } catch (err) {
     console.error('Lỗi ghi audit log:', err.message);
   }
@@ -527,11 +571,12 @@ function logAudit(userId, username, role, action, targetType, targetId, descript
 // Hàm gửi thông báo
 function sendNotification(userId, title, message, category, linkType = null, linkId = null) {
   try {
+    const vnTime = getVietnamNow();
     const stmt = db.prepare(`
-      INSERT INTO notifications (user_id, title, message, category, link_type, link_id)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO notifications (user_id, title, message, category, link_type, link_id, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
-    stmt.run(userId, title, message, category, linkType, linkId);
+    stmt.run(userId, title, message, category, linkType, linkId, vnTime);
   } catch (err) {
     console.error('Lỗi gửi thông báo:', err.message);
   }
@@ -591,5 +636,6 @@ module.exports = {
   logAudit,
   sendNotification,
   generateNextDocOutNumber,
-  generateNextRequestCode
+  generateNextRequestCode,
+  getVietnamNow
 };

@@ -56,8 +56,15 @@ const Header = {
             </button>
           </div>
 
-          <!-- Right: Search, UI Rating Button, Notifications & Profile -->
+          <!-- Right: Live Clock, UI Rating Button, Notifications & Profile -->
           <div class="flex items-center gap-2.5">
+
+            <!-- Live Hanoi Clock Badge (Múi giờ Hà Nội GMT+7) -->
+            <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs font-mono font-bold shadow-2xs" title="Giờ chuẩn Việt Nam (Hà Nội - GMT+7)">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-700"></i>
+              <span id="live-header-clock">--:--:-- (Giờ Hà Nội)</span>
+            </div>
             
             <!-- Quick UI Rating Button (Mục bắt buộc) -->
             <button onclick="Modals.openAppRatingModal()" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/10 text-amber-800 border border-amber-300 hover:bg-amber-500 hover:text-white transition shadow-2xs" title="Đánh giá giao diện & trải nghiệm app">
@@ -107,28 +114,52 @@ const Header = {
                 </button>
 
                 <!-- User Dropdown -->
-                <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 py-1 text-xs">
+                <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 py-1 text-xs">
                   <div class="px-4 py-3 border-b border-slate-100">
                     <div class="font-bold text-slate-800">${user.full_name}</div>
                     <div class="text-slate-500 text-[11px] truncate">${user.department || user.role}</div>
                     <div class="text-slate-400 text-[10px] font-mono mt-0.5">@${user.username}</div>
                   </div>
-                  <a href="#app-rating" class="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition">
+
+                  <!-- Thẻ thông tin phiên làm việc bảo mật 6 tiếng & Vị trí GPS -->
+                  <div class="p-2 bg-slate-50 rounded-xl m-2 border border-slate-100 text-[10px] space-y-1">
+                    <div class="flex items-center justify-between font-bold text-slate-700">
+                      <span class="flex items-center gap-1">
+                        <i data-lucide="shield-check" class="w-3 h-3 text-emerald-600"></i>
+                        <span>Phiên bảo mật:</span>
+                      </span>
+                      <span class="text-emerald-700 font-bold">Giới hạn 6h</span>
+                    </div>
+                    <div class="font-mono text-emerald-800 font-bold" id="header-session-time">
+                      Đang tính thời gian...
+                    </div>
+                    ${user.last_login_location ? `
+                      <div class="text-[10px] text-slate-500 truncate" title="${user.last_login_location}">
+                        📍 ${user.last_login_location}
+                      </div>
+                    ` : ''}
+                  </div>
+
+                  <a href="#app-rating" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition">
                     <i data-lucide="star" class="w-4 h-4 text-amber-500"></i>
                     <span>Đánh giá giao diện & app</span>
                   </a>
-                  <a href="#notifications" class="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition">
+                  <a href="#notifications" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition">
                     <i data-lucide="bell" class="w-4 h-4 text-blue-500"></i>
                     <span>Thông báo của tôi</span>
                   </a>
                   ${user.role === 'admin' ? `
-                    <a href="#unit-settings" class="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition">
+                    <a href="#ip-security" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition">
+                      <i data-lucide="shield-alert" class="w-4 h-4 text-indigo-600"></i>
+                      <span>Giám sát an ninh mạng (B-Firewall)</span>
+                    </a>
+                    <a href="#unit-settings" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition">
                       <i data-lucide="settings" class="w-4 h-4 text-slate-500"></i>
                       <span>Cài đặt hệ thống & đơn vị</span>
                     </a>
                   ` : ''}
                   <div class="border-t border-slate-100 my-1"></div>
-                  <button onclick="API.logout()" class="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-rose-600 hover:bg-rose-50 transition">
+                  <button onclick="API.logout()" class="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-rose-600 hover:bg-rose-50 transition font-bold">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
                     <span>Đăng xuất</span>
                   </button>
@@ -246,6 +277,43 @@ const Header = {
 
     // Load initial notifs
     this.loadNotifications();
+
+    // Start Live Clock & Session Timer
+    this.startClock();
+  },
+
+  startClock() {
+    const update = () => {
+      const clockEl = document.getElementById('live-header-clock');
+      if (clockEl) {
+        const now = new Date();
+        const timeStr = new Intl.DateTimeFormat('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour12: false
+        }).format(now);
+        clockEl.innerText = `${timeStr} (Giờ Hà Nội)`;
+      }
+
+      const sessEl = document.getElementById('header-session-time');
+      if (sessEl && API.getSessionRemainingMs) {
+        const ms = API.getSessionRemainingMs();
+        if (ms <= 0) {
+          sessEl.innerText = 'Đã hết hạn phiên làm việc (quá 6h)';
+          sessEl.className = 'font-mono text-rose-600 font-bold';
+        } else {
+          const hours = Math.floor(ms / (1000 * 60 * 60));
+          const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+          sessEl.innerText = `Còn ${hours} giờ ${mins} phút (Tự hết hạn sau 6h)`;
+          sessEl.className = 'font-mono text-emerald-800 font-bold';
+        }
+      }
+    };
+
+    update();
+    if (this._clockTimer) clearInterval(this._clockTimer);
+    this._clockTimer = setInterval(update, 1000);
   }
 };
 

@@ -61,7 +61,7 @@ const AuditLogsPage = {
 
       tbody.innerHTML = logs.map(l => `
         <tr class="hover:bg-slate-50 transition">
-          <td class="p-3.5 text-slate-500 whitespace-nowrap">${l.created_at}</td>
+          <td class="p-3.5 text-slate-500 whitespace-nowrap">${window.formatVietnamTime ? window.formatVietnamTime(l.created_at) : l.created_at}</td>
           <td class="p-3.5 font-bold text-slate-800 whitespace-nowrap">@${l.username || 'guest'}</td>
           <td class="p-3.5 whitespace-nowrap">
             <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-slate-100 text-slate-700">${l.role || 'public'}</span>

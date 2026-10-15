@@ -1,3 +1,5 @@
+process.env.TZ = 'Asia/Ho_Chi_Minh';
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -12,7 +14,8 @@ const {
   logAudit,
   sendNotification,
   generateNextDocOutNumber,
-  generateNextRequestCode
+  generateNextRequestCode,
+  getVietnamNow
 } = require('./database/db');
 
 const { runSeed } = require('./database/seed');
@@ -52,9 +55,9 @@ app.use((req, res, next) => {
 
     if (blockedRule) {
       db.prepare(`
-        INSERT INTO ip_access_logs (ip_address, user_agent, endpoint, method, status_code, is_blocked, threat_level)
-        VALUES (?, ?, ?, ?, 403, 1, 'danger')
-      `).run(clientIp, (req.headers['user-agent'] || '').substring(0, 150), req.path, req.method);
+        INSERT INTO ip_access_logs (ip_address, user_agent, endpoint, method, status_code, is_blocked, threat_level, created_at)
+        VALUES (?, ?, ?, ?, 403, 1, 'danger', ?)
+      `).run(clientIp, (req.headers['user-agent'] || '').substring(0, 150), req.path, req.method, getVietnamNow());
 
       return res.status(403).json({
         error: 'TRUY CẬP BỊ TỪ CHỐI BỞI TƯỜNG LỬA AN NINH MẠNG UBND XÃ',
@@ -69,14 +72,15 @@ app.use((req, res, next) => {
     if (req.path.startsWith('/api/') && !req.path.includes('/security/ip-logs')) {
       const isSensitive = req.path.includes('/auth/') || req.path.includes('/security/');
       db.prepare(`
-        INSERT INTO ip_access_logs (ip_address, user_agent, endpoint, method, status_code, is_blocked, threat_level)
-        VALUES (?, ?, ?, ?, 200, 0, ?)
+        INSERT INTO ip_access_logs (ip_address, user_agent, endpoint, method, status_code, is_blocked, threat_level, created_at)
+        VALUES (?, ?, ?, ?, 200, 0, ?, ?)
       `).run(
         clientIp,
         (req.headers['user-agent'] || '').substring(0, 150),
         req.path,
         req.method,
-        isSensitive ? 'suspicious' : 'normal'
+        isSensitive ? 'suspicious' : 'normal',
+        getVietnamNow()
       );
     }
   } catch (err) {}
@@ -196,7 +200,7 @@ function requireRole(...allowedRoles) {
 
 // Đăng nhập bằng Tên tài khoản / Số điện thoại / Căn cước công dân (CCCD) và mật khẩu
 app.post('/api/auth/login', (req, res) => {
-  const { username, login_id, password, captcha_token, captcha_answer } = req.body;
+  const { username, login_id, password, captcha_token, captcha_answer, location } = req.body;
   const rawIdentifier = String(login_id || username || '').trim();
   if (!rawIdentifier || !password) {
     return res.status(400).json({ error: 'Vui lòng nhập tên đăng nhập / số điện thoại / CCCD và mật khẩu' });
@@ -248,12 +252,60 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ error: 'Tài khoản, số điện thoại hoặc mật khẩu không chính xác' });
   }
 
-  const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+  // Phiên đăng nhập giới hạn chính xác trong 6 tiếng (21600 giây)
+  const clientIp = getClientIp(req);
+  const nowVn = getVietnamNow();
+  const token = jwt.sign(
+    { id: user.id, username: user.username, role: user.role, login_time: Date.now() },
+    JWT_SECRET,
+    { expiresIn: '6h' }
+  );
+
+  // Xử lý vị trí địa lý thiết bị truy cập thực tế (GPS Geolocation)
+  let locDesc = 'Trụ sở UBND Xã Tân Triều, Thanh Trì, TP. Hà Nội';
+  let lat = null, lng = null, acc = null;
+  if (location) {
+    if (location.address && String(location.address).trim()) {
+      locDesc = String(location.address).trim();
+    } else if (location.latitude && location.longitude) {
+      lat = Number(location.latitude);
+      lng = Number(location.longitude);
+      acc = location.accuracy ? Number(location.accuracy) : 15;
+      locDesc = `Tọa độ GPS: ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E (±${Math.round(acc)}m) - Tân Triều, Thanh Trì, Hà Nội`;
+    }
+  }
+
+  try {
+    db.prepare(`
+      UPDATE users 
+      SET last_login_at = ?,
+          last_login_ip = ?,
+          last_login_location = ?,
+          last_login_latitude = ?,
+          last_login_longitude = ?,
+          last_login_accuracy = ?
+      WHERE id = ?
+    `).run(nowVn, clientIp, locDesc, lat, lng, acc, user.id);
+  } catch (e) {}
+
   const { password: _, ...userInfo } = user;
+  userInfo.last_login_at = nowVn;
+  userInfo.last_login_ip = clientIp;
+  userInfo.last_login_location = locDesc;
 
-  logAudit(user.id, user.username, user.role, 'LOGIN', 'auth', user.id, `Đăng nhập hệ thống (${user.role}) qua tài khoản/SĐT/CCCD: ${rawIdentifier}`, req.ip);
+  logAudit(user.id, user.username, user.role, 'LOGIN', 'auth', user.id, `Đăng nhập hệ thống (${user.role}) qua SĐT/CCCD: ${rawIdentifier} tại [${locDesc}]`, clientIp);
 
-  res.json({ token, user: userInfo });
+  res.json({
+    token,
+    user: userInfo,
+    session_info: {
+      login_time: Date.now(),
+      expires_in_hours: 6,
+      expires_in_seconds: 21600,
+      server_time_vn: `${nowVn} (Giờ Hà Nội - GMT+7)`,
+      location: locDesc
+    }
+  });
 });
 
 // ==========================================
@@ -597,7 +649,7 @@ app.post('/api/auth/register', (req, res) => {
   );
 
   const newUserId = info.lastInsertRowid;
-  const token = jwt.sign({ id: newUserId, username: cleanUsername, role: assignedRole }, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ id: newUserId, username: cleanUsername, role: assignedRole }, JWT_SECRET, { expiresIn: '6h' });
   const newUser = db.prepare(`
     SELECT id, username, full_name, role, department, position, email, phone, cccd,
            dob, gender, ethnicity, birthplace, hometown, permanent_address, chip_serial,
@@ -657,7 +709,7 @@ app.post('/api/auth/quick-switch', (req, res) => {
     return res.status(404).json({ error: 'Tài khoản không tồn tại' });
   }
 
-  const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '6h' });
   const { password: _, ...userInfo } = user;
 
   logAudit(user.id, user.username, user.role, 'QUICK_SWITCH', 'auth', user.id, `Chuyển nhanh tài khoản sang ${user.full_name} (${user.role})`, req.ip);

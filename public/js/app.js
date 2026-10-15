@@ -31,36 +31,80 @@ const App = {
     'news': CommuneNewsPage
   },
 
-  currentRoute: 'dashboard',
+  currentRoute: 'login',
+  lastKnownIp: null,
+  _ipPulseTimer: null,
 
   init() {
     window.addEventListener('hashchange', () => this.handleRoute());
     window.addEventListener('auth-changed', () => this.handleRoute());
 
-    // Nếu chưa đăng nhập và không phải đang ở trang public, tự động login demo hoặc mở dashboard
-    const user = API.getUser();
-    if (!user && !window.location.hash.includes('citizen-portal') && !window.location.hash.includes('request-tracking') && !window.location.hash.includes('news')) {
-      // Tự động đăng nhập tài khoản Chủ tịch để tiện review ngay lập tức
-      API.quickSwitch('chutich').then(() => {
-        this.handleRoute();
-      }).catch(() => {
-        this.handleRoute();
-      });
-      return;
+    // Kiểm tra thời hạn phiên đăng nhập 6 tiếng
+    const sessionValid = API.isSessionValid();
+    if (!sessionValid) {
+      API.logout(false);
+      // Mặc định khi vào web nếu chưa đăng nhập hoặc đã qua 6 tiếng thì luôn ở ngoài trang Đăng nhập
+      if (!window.location.hash || window.location.hash === '#dashboard' || window.location.hash === '#') {
+        window.location.hash = '#login';
+      }
+    } else {
+      if (!window.location.hash || window.location.hash === '#') {
+        window.location.hash = '#dashboard';
+      }
     }
+
+    // Khởi động Hệ thống Giám sát IP Liên tục (B-Firewall™ Continuous Heartbeat)
+    this.startContinuousIpMonitoring();
 
     this.handleRoute();
   },
 
+  startContinuousIpMonitoring() {
+    this.checkIpPulse();
+
+    // Chu kỳ giám sát liên tục mỗi 25 giây
+    if (this._ipPulseTimer) clearInterval(this._ipPulseTimer);
+    this._ipPulseTimer = setInterval(() => {
+      this.checkIpPulse();
+    }, 25000);
+  },
+
+  async checkIpPulse() {
+    try {
+      const savedLoc = localStorage.getItem('ubnd_last_location');
+      const pulse = await API.sendSecurityPulse(savedLoc ? { address: savedLoc } : null);
+      
+      // Nếu IP bị chặn bởi tường lửa:
+      if (pulse && pulse.is_blocked) {
+        API.logout(false);
+        window.location.hash = '#login';
+        Modals.showToast(`CẢNH BÁO AN NINH: Địa chỉ IP ${pulse.ip_address} đã bị Tường lửa B-Firewall chặn truy cập!`, 'error');
+        return;
+      }
+
+      // Phát hiện thay đổi địa chỉ IP
+      if (pulse && this.lastKnownIp && this.lastKnownIp !== pulse.ip_address) {
+        Modals.showToast(`Lưu ý an ninh: Địa chỉ IP vừa thay đổi từ ${this.lastKnownIp} sang ${pulse.ip_address} lúc ${pulse.server_time_vn}`, 'warning');
+      }
+      if (pulse) {
+        this.lastKnownIp = pulse.ip_address;
+      }
+    } catch(err) {
+      // Im lặng nếu không kết nối được
+    }
+  },
+
   async handleRoute() {
-    let hash = window.location.hash.replace('#', '') || 'dashboard';
+    let hash = window.location.hash.replace('#', '') || 'login';
     const routeName = hash.split('?')[0];
 
-    // Kiểm tra đăng nhập
+    // Kiểm tra đăng nhập và thời hạn phiên 6 tiếng
     const user = API.getUser();
+    const sessionValid = API.isSessionValid();
     const publicRoutes = ['login', 'citizen-portal', 'request-tracking', 'app-rating', 'service-rating', 'news'];
 
-    if (!user && !publicRoutes.includes(routeName)) {
+    if ((!user || !sessionValid) && !publicRoutes.includes(routeName)) {
+      API.logout(false);
       window.location.hash = '#login';
       return;
     }

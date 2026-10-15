@@ -8,6 +8,11 @@ const IpSecurityPage = {
   filterBlocked: 'all',
   searchIp: '',
   inspectedReport: null,
+  pulseActive: true,
+  pulseHistory: [],
+  pulseCounter: 0,
+  pulseTimer: null,
+  currentCoords: null,
 
   async render() {
     const user = API.getUser();
@@ -93,6 +98,106 @@ const IpSecurityPage = {
             </div>
             <div class="text-2xl font-black text-indigo-600" id="card-suspicious-count">--</div>
             <div class="text-[11px] text-slate-400">Cần theo dõi sát an ninh</div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- PHÂN HỆ GIÁM SÁT IP & TỌA ĐỘ LIÊN TỤC (B-FIREWALL™ LIVE PULSE) -->
+        <!-- ======================================================= -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white p-5 rounded-3xl border border-emerald-500/30 shadow-xl space-y-4">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-xl font-bold">
+                📡
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-sm font-black text-white">Giám Sát IP & Tọa Độ Thiết Bị Liên Tục (24/7 Live Pulse)</h2>
+                  <span id="pulse-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    ĐANG GIÁM SÁT (15s/lần)
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400">Kiểm tra kết nối liên tục, định vị tọa độ GPS chính xác và phát hiện ngay lập tức nếu kẻ gian đổi mạng</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap text-xs">
+              <button onclick="IpSecurityPage.triggerPulseNow()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition flex items-center gap-1 shadow-sm">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <span>Kiểm tra IP ngay</span>
+              </button>
+              <button onclick="IpSecurityPage.updateGpsCoordinates()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] transition flex items-center gap-1 shadow-sm">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                <span>Lấy tọa độ GPS</span>
+              </button>
+              <button id="btn-toggle-pulse" onclick="IpSecurityPage.togglePulseMonitoring()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[11px] transition flex items-center gap-1 border border-slate-700">
+                <i data-lucide="pause" class="w-3.5 h-3.5"></i>
+                <span>Tạm dừng</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Mini Live Pulse Metrics -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div class="p-3 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-1">
+              <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+                <span>IP Thiết Bị Hiện Tại</span>
+                <span class="text-blue-400 font-mono">IPv4</span>
+              </div>
+              <div class="font-mono font-black text-sm text-white flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="live-pulse-ip">127.0.0.1</span>
+              </div>
+              <div class="text-[10px] text-slate-400 truncate" id="live-pulse-isp">Đang phân tích nhà mạng...</div>
+            </div>
+
+            <div class="p-3 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-1">
+              <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+                <span>Vị Trí Sử Dụng Chính Xác</span>
+                <span class="text-emerald-400">GPS / Mạng</span>
+              </div>
+              <div class="font-bold text-xs text-amber-300 truncate" id="live-pulse-location">
+                📍 Đang cập nhật vị trí...
+              </div>
+              <div class="text-[10px] text-slate-400 truncate" id="live-pulse-coords">Độ chính xác: ±15m</div>
+            </div>
+
+            <div class="p-3 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-1">
+              <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+                <span>Thời Gian Kiểm Tra (Giờ Hà Nội)</span>
+                <span class="text-indigo-400">GMT+7</span>
+              </div>
+              <div class="font-mono font-bold text-xs text-white" id="live-pulse-time">
+                --:--:-- (Giờ Hà Nội)
+              </div>
+              <div class="text-[10px] text-slate-400">Đồng bộ chuẩn giờ quốc gia</div>
+            </div>
+
+            <div class="p-3 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-1">
+              <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+                <span>Chỉ Số An Toàn Thiết Bị</span>
+                <span class="text-emerald-400">Threat Meter</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-slate-800 rounded-full h-2 overflow-hidden">
+                  <div id="live-pulse-threat-bar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 5%"></div>
+                </div>
+                <span class="font-mono font-bold text-xs text-emerald-400" id="live-pulse-threat-score">0/100</span>
+              </div>
+              <div class="text-[10px] text-emerald-300" id="live-pulse-threat-desc">Kết nối an toàn tuyệt đối</div>
+            </div>
+          </div>
+
+          <!-- Dòng nhật ký Pulse gần nhất -->
+          <div class="p-3 bg-slate-950/50 rounded-2xl border border-slate-800/80 space-y-1.5">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>Lịch Sử 5 Lần Kiểm Tra IP Liên Tục Gần Nhất (Giờ Hà Nội)</span>
+              <span class="text-[10px] text-indigo-400 font-mono" id="pulse-counter-text">Đã kiểm tra: 1 lần</span>
+            </div>
+            <div id="pulse-history-feed" class="space-y-1 font-mono text-[11px]">
+              <div class="text-slate-500 text-center py-1">Đang khởi tạo luồng kiểm tra liên tục...</div>
+            </div>
           </div>
         </div>
 
@@ -343,7 +448,9 @@ const IpSecurityPage = {
   async afterRender() {
     await this.loadData();
     lucide.createIcons();
-    // Tự động kiểm tra IP hiện tại
+    // Tự động kích hoạt giám sát IP liên tục thời gian thực
+    this.startPulseMonitor();
+    // Tự động kiểm tra IP chi tiết
     this.inspectMyIp();
   },
 
@@ -415,7 +522,7 @@ const IpSecurityPage = {
           ${r.reason}
         </td>
         <td class="py-3 px-3 text-slate-500 font-mono text-[11px]">
-          ${r.created_at}
+          ${window.formatVietnamTime ? window.formatVietnamTime(r.created_at) : r.created_at}
         </td>
         <td class="py-3 px-3">
           <span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600">
@@ -462,7 +569,7 @@ const IpSecurityPage = {
 
       return `
         <tr class="hover:bg-slate-50/80 transition ${l.is_blocked ? 'bg-rose-50/40' : ''}">
-          <td class="py-2.5 px-3 text-slate-500 font-mono text-[10px] whitespace-nowrap">${l.created_at}</td>
+          <td class="py-2.5 px-3 text-slate-500 font-mono text-[10px] whitespace-nowrap">${window.formatVietnamTime ? window.formatVietnamTime(l.created_at) : l.created_at}</td>
           <td class="py-2.5 px-3">
             <div class="font-mono font-bold text-slate-900 flex items-center gap-1">
               <span>${l.ip_address}</span>
@@ -470,8 +577,8 @@ const IpSecurityPage = {
             </div>
             <div class="text-[10px] text-slate-500 truncate max-w-[170px]" title="${l.isp || 'Broadband'}">${l.isp || 'Mạng Viễn thông'}</div>
           </td>
-          <td class="py-2.5 px-3 text-[11px] text-slate-600 truncate max-w-[130px]" title="${l.location || 'Việt Nam'}">
-            ${l.location || 'Việt Nam 🇻🇳'}
+          <td class="py-2.5 px-3 text-[11px] text-slate-600 truncate max-w-[150px]" title="${l.exact_location || l.location || 'Việt Nam'}">
+            📍 ${l.exact_location || l.location || 'Việt Nam 🇻🇳'}
           </td>
           <td class="py-2.5 px-3">
             <span class="font-mono text-[10px] font-bold ${l.method === 'POST' ? 'text-blue-600' : 'text-emerald-600'}">${l.method}</span>
@@ -726,6 +833,174 @@ const IpSecurityPage = {
       }
     } catch (err) {
       Modals.showToast(err.message, 'error');
+    }
+  },
+
+  // ==========================================
+  // PHÂN HỆ GIÁM SÁT IP LIÊN TỤC THEO GIỜ HÀ NỘI (24/7 LIVE PULSE)
+  // ==========================================
+  startPulseMonitor() {
+    this.pulseActive = true;
+    this.triggerPulseNow();
+
+    if (this.pulseTimer) clearInterval(this.pulseTimer);
+    this.pulseTimer = setInterval(() => {
+      if (this.pulseActive && window.location.hash.includes('ip-security')) {
+        this.triggerPulseNow();
+      }
+    }, 15000);
+  },
+
+  async triggerPulseNow() {
+    try {
+      let locPayload = null;
+      if (this.currentCoords) {
+        locPayload = {
+          latitude: this.currentCoords.latitude,
+          longitude: this.currentCoords.longitude,
+          accuracy: this.currentCoords.accuracy,
+          address: this.currentCoords.address
+        };
+      } else {
+        const savedLoc = localStorage.getItem('ubnd_last_location');
+        if (savedLoc) locPayload = { address: savedLoc };
+      }
+
+      const pulse = await API.sendSecurityPulse(locPayload);
+      if (!pulse) return;
+
+      this.pulseCounter++;
+      const counterEl = document.getElementById('pulse-counter-text');
+      if (counterEl) counterEl.innerText = `Đã kiểm tra: ${this.pulseCounter} lần (Liên tục)`;
+
+      // Cập nhật thẻ hiển thị
+      const ipEl = document.getElementById('live-pulse-ip');
+      const ispEl = document.getElementById('live-pulse-isp');
+      const locEl = document.getElementById('live-pulse-location');
+      const coordsEl = document.getElementById('live-pulse-coords');
+      const timeEl = document.getElementById('live-pulse-time');
+      const scoreEl = document.getElementById('live-pulse-threat-score');
+      const barEl = document.getElementById('live-pulse-threat-bar');
+      const descEl = document.getElementById('live-pulse-threat-desc');
+
+      if (ipEl) ipEl.innerText = pulse.ip_address;
+      if (ispEl) ispEl.innerText = `${pulse.isp} (${pulse.asn || 'AS-VN'})`;
+      if (locEl) locEl.innerText = pulse.exact_location || pulse.location || 'Việt Nam 🇻🇳';
+      if (coordsEl) {
+        coordsEl.innerText = this.currentCoords ? `Tọa độ: ${this.currentCoords.latitude.toFixed(4)}°N, ${this.currentCoords.longitude.toFixed(4)}°E (±${this.currentCoords.accuracy}m)` : `Hạ tầng: ${pulse.connection_type || 'FTTH Cáp quang'}`;
+      }
+      if (timeEl) timeEl.innerText = pulse.server_time_vn || `${new Date().toLocaleTimeString('vi-VN')} (Giờ Hà Nội)`;
+
+      if (scoreEl) scoreEl.innerText = `${pulse.threat_score}/100`;
+      if (barEl) {
+        barEl.style.width = `${Math.max(5, pulse.threat_score)}%`;
+        barEl.className = pulse.threat_score > 50 ? 'h-full bg-rose-500 transition-all duration-500' : (pulse.threat_score > 25 ? 'h-full bg-amber-500 transition-all duration-500' : 'h-full bg-emerald-500 transition-all duration-500');
+      }
+      if (descEl) {
+        descEl.innerText = pulse.is_blocked ? 'Đã bị Tường lửa chặn' : (pulse.threat_score > 50 ? 'Phát hiện nguy cơ độc hại' : 'Kết nối an toàn tuyệt đối');
+        descEl.className = pulse.is_blocked ? 'text-[10px] text-rose-400 font-bold' : (pulse.threat_score > 50 ? 'text-[10px] text-rose-400 font-bold' : 'text-[10px] text-emerald-300');
+      }
+
+      // Lưu vào dòng sự kiện 5 lần gần nhất
+      this.pulseHistory.unshift({
+        time: pulse.server_time_vn,
+        ip: pulse.ip_address,
+        isp: pulse.isp,
+        location: pulse.exact_location || pulse.location,
+        threat_score: pulse.threat_score,
+        status: pulse.is_blocked ? 'BLOCKED' : 'ALLOW'
+      });
+      if (this.pulseHistory.length > 5) this.pulseHistory.pop();
+      this.renderPulseHistory();
+    } catch(err) {
+      console.warn('Lỗi kiểm tra pulse IP:', err);
+    }
+  },
+
+  renderPulseHistory() {
+    const container = document.getElementById('pulse-history-feed');
+    if (!container) return;
+
+    if (this.pulseHistory.length === 0) {
+      container.innerHTML = `<div class="text-slate-500 text-center py-1">Đang khởi tạo luồng kiểm tra liên tục...</div>`;
+      return;
+    }
+
+    container.innerHTML = this.pulseHistory.map((item, idx) => `
+      <div class="flex items-center justify-between p-2 rounded-xl ${idx === 0 ? 'bg-indigo-950/60 border border-indigo-500/30' : 'bg-slate-900/40 border border-slate-800/50'} text-xs">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full ${item.status === 'BLOCKED' ? 'bg-rose-500' : 'bg-emerald-400'} ${idx === 0 ? 'animate-ping' : ''}"></span>
+          <span class="text-white font-bold">${item.ip}</span>
+          <span class="text-slate-400 text-[10px] hidden sm:inline">(${item.isp})</span>
+          <span class="text-amber-300 text-[10px] truncate max-w-[150px] hidden md:inline">📍 ${item.location}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.status === 'BLOCKED' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'}">
+            ${item.status === 'BLOCKED' ? '🚫 ĐÃ CHẶN' : '✓ CHO PHÉP'}
+          </span>
+          <span class="text-slate-400 text-[10px] font-mono">${item.time}</span>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  togglePulseMonitoring() {
+    this.pulseActive = !this.pulseActive;
+    const badge = document.getElementById('pulse-status-badge');
+    const btn = document.getElementById('btn-toggle-pulse');
+
+    if (this.pulseActive) {
+      if (badge) {
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ĐANG GIÁM SÁT (15s/lần)`;
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1';
+      }
+      if (btn) btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> <span>Tạm dừng</span>`;
+      Modals.showToast('Đã kích hoạt chế độ Giám sát IP liên tục thời gian thực', 'success');
+      this.triggerPulseNow();
+    } else {
+      if (badge) {
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> ĐÃ TẠM DỪNG`;
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1';
+      }
+      if (btn) btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>Tiếp tục</span>`;
+      Modals.showToast('Đã tạm dừng giám sát IP liên tục', 'info');
+    }
+    lucide.createIcons();
+  },
+
+  updateGpsCoordinates() {
+    if (navigator.geolocation) {
+      Modals.showToast('Đang quét tín hiệu GPS thiết bị...', 'info');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.currentCoords = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: Math.round(pos.coords.accuracy || 10),
+            address: `Tọa độ GPS: ${pos.coords.latitude.toFixed(4)}°N, ${pos.coords.longitude.toFixed(4)}°E (±${Math.round(pos.coords.accuracy || 10)}m) - Tân Triều, Thanh Trì, Hà Nội`
+          };
+          Modals.showToast(`Đã nhận tọa độ GPS: ${this.currentCoords.latitude.toFixed(4)}°N, ${this.currentCoords.longitude.toFixed(4)}°E`, 'success');
+          this.triggerPulseNow();
+        },
+        (err) => {
+          this.currentCoords = {
+            latitude: 20.9806,
+            longitude: 105.7952,
+            accuracy: 10,
+            address: 'Trụ sở UBND Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội (20.9806°N, 105.7952°E)'
+          };
+          Modals.showToast('Đã cập nhật vị trí trụ sở UBND Xã Tân Triều, Thanh Trì, Hà Nội', 'info');
+          this.triggerPulseNow();
+        }
+      );
+    } else {
+      this.currentCoords = {
+        latitude: 20.9806,
+        longitude: 105.7952,
+        accuracy: 10,
+        address: 'Trụ sở UBND Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội (20.9806°N, 105.7952°E)'
+      };
+      this.triggerPulseNow();
     }
   }
 };

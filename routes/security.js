@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const { db, logAudit } = require('../database/db');
+const { db, logAudit, getVietnamNow } = require('../database/db');
 
 const router = express.Router();
 
@@ -272,6 +272,103 @@ router.delete('/ip-rules/:id', (req, res) => {
   res.json({
     success: true,
     message: `Đã gỡ chặn địa chỉ IP ${rule.ip_address} thành công. IP này có thể truy cập lại bình thường.`
+  });
+});
+
+// ==========================================
+// 3. CONTINUOUS REAL-TIME IP MONITORING PULSE (GIÁM SÁT IP LIÊN TỤC THEO GIỜ HÀ NỘI)
+// ==========================================
+
+// Nhận nhịp tim an ninh định kỳ (Heartbeat Pulse) từ trình duyệt / thiết bị người dùng
+router.get('/pulse', (req, res) => {
+  const ip = getClientIp(req);
+  const geo = resolveIpDetails(ip);
+  const report = inspectIpThreat(ip);
+  const isBlocked = db.prepare("SELECT id FROM ip_rules WHERE ip_address = ? AND rule_type = 'blacklist' AND is_active = 1").get(ip);
+  const threatScore = report.threat_analysis?.threat_score ?? 0;
+  const threatLevel = report.threat_analysis?.threat_level ?? 'normal';
+  
+  const now = new Date();
+  const vnTimeStr = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour12: false
+  }).format(now);
+  const vnTimestamp = getVietnamNow();
+
+  res.json({
+    success: true,
+    status: 'MONITORING_ACTIVE',
+    ip_address: ip,
+    isp: geo.isp,
+    asn: geo.asn,
+    location: geo.location,
+    connection_type: geo.connection_type,
+    threat_score: threatScore,
+    threat_level: threatLevel,
+    is_blocked: !!isBlocked,
+    server_time_vn: `${vnTimeStr} (Giờ Hà Nội - GMT+7)`,
+    created_at_vn: vnTimestamp,
+    timestamp: Date.now()
+  });
+});
+
+router.post('/pulse', (req, res) => {
+  const ip = getClientIp(req);
+  const { latitude, longitude, accuracy, address } = req.body || {};
+  const geo = resolveIpDetails(ip);
+  const report = inspectIpThreat(ip);
+  const isBlocked = db.prepare("SELECT id FROM ip_rules WHERE ip_address = ? AND rule_type = 'blacklist' AND is_active = 1").get(ip);
+  const threatScore = report.threat_analysis?.threat_score ?? 0;
+  const threatLevel = report.threat_analysis?.threat_level ?? 'normal';
+  
+  const now = new Date();
+  const vnTimeStr = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour12: false
+  }).format(now);
+  const vnTimestamp = getVietnamNow();
+
+  let locDesc = geo.location;
+  if (latitude && longitude) {
+    locDesc = address || `Tọa độ GPS: ${Number(latitude).toFixed(4)}°N, ${Number(longitude).toFixed(4)}°E (±${Math.round(accuracy || 0)}m)`;
+  }
+
+  // Ghi nhật ký giám sát liên tục vào database
+  try {
+    db.prepare(`
+      INSERT INTO ip_access_logs (ip_address, user_agent, endpoint, method, status_code, username, is_blocked, threat_level, created_at, latitude, longitude, exact_location)
+      VALUES (?, ?, '/api/security/pulse', 'POST', 200, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      ip,
+      (req.headers['user-agent'] || 'B-Firewall Pulse Agent').substring(0, 150),
+      req.user?.username || 'client_monitor',
+      isBlocked ? 1 : 0,
+      threatLevel,
+      vnTimestamp,
+      latitude || null,
+      longitude || null,
+      locDesc
+    );
+  } catch (e) {}
+
+  res.json({
+    success: true,
+    status: 'MONITORING_ACTIVE',
+    ip_address: ip,
+    isp: geo.isp,
+    asn: geo.asn,
+    location: geo.location,
+    exact_location: locDesc,
+    threat_score: threatScore,
+    threat_level: threatLevel,
+    is_blocked: !!isBlocked,
+    server_time_vn: `${vnTimeStr} (Giờ Hà Nội - GMT+7)`,
+    created_at_vn: vnTimestamp,
+    timestamp: Date.now()
   });
 });
 
