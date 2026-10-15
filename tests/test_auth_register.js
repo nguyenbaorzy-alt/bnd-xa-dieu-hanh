@@ -75,15 +75,22 @@ async function testAuth() {
   }
   console.log('✓ Chặn mật khẩu xác nhận không khớp');
 
-  // Test 4: Đăng ký thành công tài khoản Người dân
-  console.log('\n--- 3. Đăng ký tài khoản Người dân mới ---');
+  // Test 4: Đăng ký thành công tài khoản Người dân (Kèm xác minh SMS OTP)
+  console.log('\n--- 3. Đăng ký tài khoản Người dân mới (Kèm xác minh SMS OTP) ---');
+  const citizenPhone = '0912' + Math.floor(100000 + Math.random() * 900000);
+  const otpRes1 = await req('/api/auth/send-otp', 'POST', { phone: citizenPhone });
+  const otpCode1 = otpRes1.body.simulated_sms?.otp_code;
+  const verRes1 = await req('/api/auth/verify-otp', 'POST', { phone: citizenPhone, otp_code: otpCode1 });
+
   const citizenUsername = 'congdan_' + Math.floor(Math.random() * 10000);
   const regCitizen = await req('/api/auth/register', 'POST', {
     username: citizenUsername,
     password: 'securePassword123',
     confirm_password: 'securePassword123',
     full_name: 'Nguyễn Văn Công Dân Mới',
-    phone: '0912345678',
+    phone: citizenPhone,
+    verification_token: verRes1.body.verification_token,
+    otp_code: otpCode1,
     email: 'congdan@test.com',
     role: 'citizen'
   });
@@ -91,13 +98,16 @@ async function testAuth() {
     throw new Error('Đăng ký người dân thất bại: ' + JSON.stringify(regCitizen.body));
   }
   console.log(`✓ Đăng ký thành công tài khoản Người dân [${citizenUsername}]: ${regCitizen.body.user.full_name}`);
+  console.log(`  Xác minh số điện thoại: ${regCitizen.body.user.is_phone_verified === 1 ? 'ĐÃ XÁC THỰC' : 'CHƯA'}`);
 
   // Test 5: Trùng tên đăng nhập
   const regDup = await req('/api/auth/register', 'POST', {
     username: citizenUsername,
     password: 'securePassword123',
     confirm_password: 'securePassword123',
-    full_name: 'Tên trùng lặp'
+    full_name: 'Tên trùng lặp',
+    phone: citizenPhone,
+    verification_token: verRes1.body.verification_token
   });
   if (regDup.status !== 400) {
     throw new Error('Lỗi: Cho phép tạo tên đăng nhập trùng lặp!');
@@ -116,14 +126,21 @@ async function testAuth() {
   console.log(`✓ Đăng nhập thành công tài khoản vừa tạo: ${loginNewCitizen.body.user.full_name} (${loginNewCitizen.body.user.role})`);
 
   // Test 7: Đăng ký tài khoản Cán bộ xã mới
-  console.log('\n--- 5. Đăng ký tài khoản Cán bộ công chức xã mới ---');
+  console.log('\n--- 5. Đăng ký tài khoản Cán bộ công chức xã mới (Kèm xác minh SMS OTP) ---');
+  const officerPhone = '0988' + Math.floor(100000 + Math.random() * 900000);
+  const otpRes2 = await req('/api/auth/send-otp', 'POST', { phone: officerPhone });
+  const otpCode2 = otpRes2.body.simulated_sms?.otp_code;
+  const verRes2 = await req('/api/auth/verify-otp', 'POST', { phone: officerPhone, otp_code: otpCode2 });
+
   const officerUsername = 'canbo_' + Math.floor(Math.random() * 10000);
   const regOfficer = await req('/api/auth/register', 'POST', {
     username: officerUsername,
     password: 'officerPass456',
     confirm_password: 'officerPass456',
     full_name: 'Lê Văn Cán Bộ Xã',
-    phone: '0988776655',
+    phone: officerPhone,
+    verification_token: verRes2.body.verification_token,
+    otp_code: otpCode2,
     email: 'canbo@tantrieu.gov.vn',
     role: 'officer',
     department: 'Địa chính - Nông nghiệp - Xây dựng & Môi trường',

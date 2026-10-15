@@ -276,22 +276,66 @@ const LoginPage = {
                   </div>
                 </div>
 
-                <!-- Số điện thoại & Email -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label class="block font-bold text-slate-700 mb-1">Số điện thoại</label>
-                    <div class="relative">
-                      <input type="tel" id="reg-phone" placeholder="VD: 0987654321" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                      <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                    </div>
+                <!-- Số điện thoại & Xác thực SMS OTP -->
+                <div class="p-3 bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 rounded-2xl border border-blue-200/90 space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                      <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
+                      <span>Số điện thoại chính chủ (Bắt buộc xác thực SMS OTP) *</span>
+                    </label>
+                    <span id="reg-phone-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                      <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i>
+                      <span>Đã xác minh SMS</span>
+                    </span>
                   </div>
 
-                  <div>
-                    <label class="block font-bold text-slate-700 mb-1">Địa chỉ Email</label>
-                    <div class="relative">
-                      <input type="email" id="reg-email" placeholder="VD: an.tran@example.com" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                      <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
+                  <div class="flex gap-2 items-center">
+                    <div class="relative flex-1">
+                      <input type="tel" id="reg-phone" required placeholder="Nhập số điện thoại (VD: 0987654321)" maxlength="11" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-white font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                      <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                     </div>
+                    <button type="button" id="btn-send-sms-otp" onclick="LoginPage.handleSendSmsOtp()" class="px-3.5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                      <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                      <span id="btn-send-sms-text">Gửi mã OTP (SMS)</span>
+                    </button>
+                  </div>
+
+                  <!-- Khung nhập mã xác thực OTP (Mở rộng khi bấm Gửi mã OTP) -->
+                  <div id="reg-otp-container" class="hidden pt-2 border-t border-blue-200/60 space-y-2">
+                    <div class="flex items-center justify-between text-[11px]">
+                      <span class="text-slate-700 font-semibold flex items-center gap-1">
+                        <i data-lucide="message-square-code" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span>Nhập mã xác minh 6 số đã gửi qua tin nhắn SMS:</span>
+                      </span>
+                      <span id="otp-timer" class="text-blue-700 font-mono font-bold text-[11px]">Hết hạn sau 120s</span>
+                    </div>
+
+                    <div class="flex gap-2 items-center">
+                      <div class="relative flex-1">
+                        <input type="text" id="reg-otp-code" placeholder="Nhập 6 số OTP (VD: 582914)" maxlength="6" class="w-full p-2.5 pl-8 rounded-xl border border-blue-300 bg-white font-mono text-center tracking-widest font-black text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden shadow-inner">
+                        <i data-lucide="key" class="w-3.5 h-3.5 text-blue-500 absolute left-2.5 top-3.5"></i>
+                      </div>
+                      <button type="button" id="btn-verify-otp" onclick="LoginPage.handleVerifySmsOtp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0">
+                        <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+                        <span>Xác nhận OTP</span>
+                      </button>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[10px] text-slate-500">
+                      <span>Tổng đài phát hành: <b class="text-slate-700">[UBND-TANTRIEU]</b></span>
+                      <button type="button" onclick="LoginPage.handleSendSmsOtp(true)" id="btn-resend-otp" class="text-blue-700 hover:underline font-semibold disabled:text-slate-400 disabled:no-underline" disabled>
+                        Gửi lại mã mới
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Địa chỉ Email -->
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Địa chỉ Email (Không bắt buộc)</label>
+                  <div class="relative">
+                    <input type="email" id="reg-email" placeholder="VD: an.tran@example.com" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                    <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                   </div>
                 </div>
 
@@ -358,6 +402,7 @@ const LoginPage = {
     if (!panelLogin || !panelRegister) return;
 
     if (tab === 'login') {
+      document.getElementById('simulated-sms-banner')?.remove();
       panelLogin.classList.remove('hidden');
       panelRegister.classList.add('hidden');
 
@@ -427,6 +472,285 @@ const LoginPage = {
       window.location.hash = '#dashboard';
     } catch (e) {
       Modals.showToast(e.message, 'error');
+    }
+  },
+
+  isPhoneVerified: false,
+  verifiedPhone: '',
+  verificationToken: '',
+  verifiedOtpCode: '',
+  otpTimerInterval: null,
+  otpRemainingSeconds: 0,
+
+  async handleSendSmsOtp(isResend = false) {
+    const phoneInput = document.getElementById('reg-phone');
+    const sendBtn = document.getElementById('btn-send-sms-otp');
+    const sendBtnText = document.getElementById('btn-send-sms-text');
+    const resendBtn = document.getElementById('btn-resend-otp');
+    const otpContainer = document.getElementById('reg-otp-container');
+
+    const phone = phoneInput?.value?.trim();
+    if (!phone) {
+      Modals.showToast('Vui lòng nhập số điện thoại trước khi yêu cầu mã OTP', 'error');
+      phoneInput?.focus();
+      return;
+    }
+
+    const phoneRegex = /^0(3|5|7|8|9)[0-9]{8}$/;
+    if (!phoneRegex.test(phone)) {
+      Modals.showToast('Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số di động (VD: 0987654321)', 'error');
+      phoneInput?.focus();
+      return;
+    }
+
+    try {
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtnText.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang gửi SMS...`;
+      }
+      if (resendBtn) resendBtn.disabled = true;
+
+      const res = await API.sendSmsOtp(phone);
+      Modals.showToast(res.message || 'Mã xác thực SMS OTP đã được phát hành!', 'success');
+
+      // Mở khung nhập OTP
+      if (otpContainer) {
+        otpContainer.classList.remove('hidden');
+        lucide.createIcons({ root: otpContainer });
+      }
+
+      // Đếm ngược 120s
+      this.startOtpCountdown(120);
+
+      // Hiển thị khung tin nhắn SMS mô phỏng thông minh
+      if (res.simulated_sms) {
+        this.showSimulatedSmsBanner(res.simulated_sms);
+      }
+
+      const otpCodeInput = document.getElementById('reg-otp-code');
+      if (otpCodeInput) {
+        otpCodeInput.value = '';
+        otpCodeInput.focus();
+      }
+
+    } catch (err) {
+      Modals.showToast(err.message, 'error');
+      if (sendBtn) sendBtn.disabled = false;
+      if (sendBtnText) sendBtnText.innerText = 'Gửi mã OTP (SMS)';
+    }
+  },
+
+  startOtpCountdown(seconds = 120) {
+    if (this.otpTimerInterval) clearInterval(this.otpTimerInterval);
+    this.otpRemainingSeconds = seconds;
+
+    const timerEl = document.getElementById('otp-timer');
+    const resendBtn = document.getElementById('btn-resend-otp');
+    const sendBtn = document.getElementById('btn-send-sms-otp');
+    const sendBtnText = document.getElementById('btn-send-sms-text');
+
+    if (resendBtn) resendBtn.disabled = true;
+
+    this.otpTimerInterval = setInterval(() => {
+      this.otpRemainingSeconds--;
+      if (timerEl) {
+        timerEl.innerText = `Hết hạn sau ${this.otpRemainingSeconds}s`;
+      }
+      if (sendBtnText) {
+        sendBtnText.innerText = `Gửi lại sau (${this.otpRemainingSeconds}s)`;
+      }
+
+      if (this.otpRemainingSeconds <= 0) {
+        clearInterval(this.otpTimerInterval);
+        if (timerEl) timerEl.innerText = 'Mã OTP đã hết hạn';
+        if (resendBtn) resendBtn.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
+        if (sendBtnText) sendBtnText.innerText = 'Gửi mã OTP (SMS)';
+      }
+    }, 1000);
+  },
+
+  showSimulatedSmsBanner(sms) {
+    document.getElementById('simulated-sms-banner')?.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'simulated-sms-banner';
+    banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-[92vw] sm:w-[480px] animate-in fade-in slide-in-from-top-4 duration-300';
+    banner.innerHTML = `
+      <div class="bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl border border-slate-700/80 flex items-start gap-3.5 ring-1 ring-white/10">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center shrink-0 text-xl font-bold shadow-md">
+          💬
+        </div>
+        <div class="flex-1 min-w-0 space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-xs text-emerald-400 flex items-center gap-1.5">
+              <span>TIN NHẮN SMS TỔNG ĐÀI</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold tracking-wider">[${sms.sender || 'UBND-TANTRIEU'}]</span>
+            </span>
+            <span class="text-[10px] text-slate-400">${sms.sent_at || 'Vừa xong'}</span>
+          </div>
+          <p class="text-xs text-slate-200 leading-snug">
+            Mã OTP xác minh tạo tài khoản của bạn là: <span class="font-mono font-black text-amber-300 text-sm tracking-widest bg-amber-400/20 px-2 py-0.5 rounded border border-amber-400/40">${sms.otp_code}</span>. Hiệu lực trong 2 phút. Tuyệt đối không chia sẻ mã này.
+          </p>
+          <div class="pt-1 flex items-center justify-between gap-2">
+            <button type="button" onclick="LoginPage.autoFillOtp('${sms.otp_code}')" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+              <span>⚡ Tự động điền mã ${sms.otp_code}</span>
+            </button>
+            <button type="button" onclick="document.getElementById('simulated-sms-banner')?.remove()" class="text-xs text-slate-400 hover:text-white px-2 py-1 transition">
+              Đóng ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(banner);
+  },
+
+  autoFillOtp(code) {
+    const otpInput = document.getElementById('reg-otp-code');
+    if (otpInput) {
+      otpInput.value = code;
+    }
+    document.getElementById('simulated-sms-banner')?.remove();
+    this.handleVerifySmsOtp();
+  },
+
+  async handleVerifySmsOtp() {
+    const phoneInput = document.getElementById('reg-phone');
+    const otpInput = document.getElementById('reg-otp-code');
+    const verifyBtn = document.getElementById('btn-verify-otp');
+    const badge = document.getElementById('reg-phone-badge');
+    const otpContainer = document.getElementById('reg-otp-container');
+    const sendBtn = document.getElementById('btn-send-sms-otp');
+
+    const phone = phoneInput?.value?.trim();
+    const code = otpInput?.value?.trim();
+
+    if (!phone) {
+      Modals.showToast('Thiếu thông tin số điện thoại', 'error');
+      return;
+    }
+    if (!code || code.length !== 6) {
+      Modals.showToast('Vui lòng nhập đủ 6 chữ số mã OTP', 'error');
+      otpInput?.focus();
+      return;
+    }
+
+    try {
+      if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = `<span class="inline-block animate-spin mr-1">⌛</span> Đang xác thực...`;
+      }
+
+      const res = await API.verifySmsOtp(phone, code);
+      Modals.showToast(res.message || 'Xác thực số điện thoại thành công!', 'success');
+
+      this.isPhoneVerified = true;
+      this.verifiedPhone = phone;
+      this.verificationToken = res.verification_token;
+      this.verifiedOtpCode = code;
+
+      if (this.otpTimerInterval) clearInterval(this.otpTimerInterval);
+
+      // Hiển thị huy hiệu đã xác minh
+      if (badge) {
+        badge.classList.remove('hidden');
+        lucide.createIcons({ root: badge });
+      }
+
+      // Khóa ô số điện thoại để không bị sửa sau khi xác minh
+      if (phoneInput) {
+        phoneInput.readOnly = true;
+        phoneInput.classList.add('bg-slate-100', 'text-slate-600');
+      }
+
+      // Ẩn nút gửi mã, hiển thị trạng thái đã xác minh
+      if (sendBtn) {
+        sendBtn.classList.add('hidden');
+      }
+      if (otpContainer) {
+        otpContainer.innerHTML = `
+          <div class="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+              <span>Số điện thoại <b>${phone}</b> đã được xác minh SMS OTP thành công.</span>
+            </span>
+            <button type="button" onclick="LoginPage.resetOtpState()" class="text-xs text-blue-700 underline font-normal">Đổi số</button>
+          </div>
+        `;
+        lucide.createIcons({ root: otpContainer });
+      }
+
+      document.getElementById('simulated-sms-banner')?.remove();
+
+    } catch (err) {
+      Modals.showToast(err.message, 'error');
+    } finally {
+      if (verifyBtn) {
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = `<i data-lucide="check-check" class="w-3.5 h-3.5"></i> <span>Xác nhận OTP</span>`;
+        lucide.createIcons({ root: verifyBtn });
+      }
+    }
+  },
+
+  resetOtpState() {
+    this.isPhoneVerified = false;
+    this.verifiedPhone = '';
+    this.verificationToken = '';
+    this.verifiedOtpCode = '';
+    if (this.otpTimerInterval) clearInterval(this.otpTimerInterval);
+
+    const phoneInput = document.getElementById('reg-phone');
+    const badge = document.getElementById('reg-phone-badge');
+    const sendBtn = document.getElementById('btn-send-sms-otp');
+    const sendBtnText = document.getElementById('btn-send-sms-text');
+
+    if (phoneInput) {
+      phoneInput.readOnly = false;
+      phoneInput.classList.remove('bg-slate-100', 'text-slate-600');
+      phoneInput.value = '';
+      phoneInput.focus();
+    }
+    if (badge) badge.classList.add('hidden');
+    if (sendBtn) {
+      sendBtn.classList.remove('hidden');
+      sendBtn.disabled = false;
+    }
+    if (sendBtnText) sendBtnText.innerText = 'Gửi mã OTP (SMS)';
+
+    const otpContainer = document.getElementById('reg-otp-container');
+    if (otpContainer) {
+      otpContainer.classList.add('hidden');
+      otpContainer.innerHTML = `
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-700 font-semibold flex items-center gap-1">
+            <i data-lucide="message-square-code" class="w-3.5 h-3.5 text-blue-600"></i>
+            <span>Nhập mã xác minh 6 số đã gửi qua tin nhắn SMS:</span>
+          </span>
+          <span id="otp-timer" class="text-blue-700 font-mono font-bold text-[11px]">Hết hạn sau 120s</span>
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <div class="relative flex-1">
+            <input type="text" id="reg-otp-code" placeholder="Nhập 6 số OTP (VD: 582914)" maxlength="6" class="w-full p-2.5 pl-8 rounded-xl border border-blue-300 bg-white font-mono text-center tracking-widest font-black text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden shadow-inner">
+            <i data-lucide="key" class="w-3.5 h-3.5 text-blue-500 absolute left-2.5 top-3.5"></i>
+          </div>
+          <button type="button" id="btn-verify-otp" onclick="LoginPage.handleVerifySmsOtp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0">
+            <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+            <span>Xác nhận OTP</span>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between text-[10px] text-slate-500">
+          <span>Tổng đài phát hành: <b class="text-slate-700">[UBND-TANTRIEU]</b></span>
+          <button type="button" onclick="LoginPage.handleSendSmsOtp(true)" id="btn-resend-otp" class="text-blue-700 hover:underline font-semibold disabled:text-slate-400 disabled:no-underline" disabled>
+            Gửi lại mã mới
+          </button>
+        </div>
+      `;
+      lucide.createIcons({ root: otpContainer });
     }
   },
 
@@ -502,6 +826,19 @@ const LoginPage = {
           return;
         }
 
+        if (!LoginPage.isPhoneVerified) {
+          Modals.showToast('Vui lòng bấm "Gửi mã OTP (SMS)" và nhập mã xác minh để hoàn tất xác thực số điện thoại', 'error');
+          const phoneInput = document.getElementById('reg-phone');
+          phoneInput?.focus();
+          return;
+        }
+
+        if (phone !== LoginPage.verifiedPhone) {
+          Modals.showToast('Số điện thoại đã thay đổi so với số đã xác minh. Vui lòng xác thực lại mã OTP.', 'error');
+          LoginPage.resetOtpState();
+          return;
+        }
+
         try {
           if (btn) {
             btn.disabled = true;
@@ -513,11 +850,13 @@ const LoginPage = {
             password,
             confirm_password: confirmPassword,
             full_name: fullName,
-            phone,
+            phone: LoginPage.verifiedPhone || phone,
             email,
             role,
             department: role === 'officer' ? department : 'Công dân',
-            position: role === 'officer' ? position : 'Công dân'
+            position: role === 'officer' ? position : 'Công dân',
+            verification_token: LoginPage.verificationToken,
+            otp_code: LoginPage.verifiedOtpCode
           });
 
           Modals.showToast(res.message || 'Tạo tài khoản thành công!', 'success');

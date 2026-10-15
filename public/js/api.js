@@ -76,6 +76,20 @@ const API = {
     return data;
   },
 
+  async sendSmsOtp(phone) {
+    return this.request('/api/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone })
+    });
+  },
+
+  async verifySmsOtp(phone, otp_code) {
+    return this.request('/api/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone, otp_code })
+    });
+  },
+
   async register(userData) {
     const data = await this.request('/api/auth/register', {
       method: 'POST',

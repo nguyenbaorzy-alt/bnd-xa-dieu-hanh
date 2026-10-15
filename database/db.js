@@ -297,6 +297,18 @@ function initSchema() {
       updated_at TEXT DEFAULT (datetime('now', 'localtime'))
     );
 
+    -- Bảng lưu trữ và xác minh mã SMS OTP
+    CREATE TABLE IF NOT EXISTS sms_otp_verifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      phone TEXT NOT NULL,
+      otp_code TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      verified INTEGER DEFAULT 0,
+      attempts INTEGER DEFAULT 0,
+      ip_address TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
     -- Indexes để truy vấn nhanh
     CREATE INDEX IF NOT EXISTS idx_doc_out_status ON doc_out(status);
     CREATE INDEX IF NOT EXISTS idx_doc_out_creator ON doc_out(creator_id);
@@ -310,9 +322,23 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_logs(created_at);
     CREATE INDEX IF NOT EXISTS idx_kpi_proj_cat ON kpi_projects(category);
     CREATE INDEX IF NOT EXISTS idx_kpi_act_proj ON kpi_action_programs(project_id);
+    CREATE INDEX IF NOT EXISTS idx_sms_otp_phone ON sms_otp_verifications(phone);
   `;
 
   db.exec(schema);
+
+  // Migration: Tự động bổ sung các cột cho bảng users nếu chưa tồn tại
+  const userCols = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
+  if (!userCols.includes('is_phone_verified')) {
+    try {
+      db.exec('ALTER TABLE users ADD COLUMN is_phone_verified INTEGER DEFAULT 0;');
+    } catch (e) {}
+  }
+  if (!userCols.includes('phone_verified_at')) {
+    try {
+      db.exec('ALTER TABLE users ADD COLUMN phone_verified_at TEXT;');
+    } catch (e) {}
+  }
 
   // Migration: Tự động bổ sung các cột cho bảng tasks nếu chưa tồn tại
   const taskCols = db.prepare('PRAGMA table_info(tasks)').all().map(c => c.name);

@@ -168,9 +168,135 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ token, user: userInfo });
 });
 
-// Đăng ký / Tạo tài khoản mới bằng tài khoản & mật khẩu
+// ==========================================
+// API XÁC MINH SỐ ĐIỆN THOẠI QUA MÃ SMS OTP
+// ==========================================
+
+// 1. Gửi mã xác minh SMS OTP
+app.post('/api/auth/send-otp', (req, res) => {
+  const { phone } = req.body;
+  if (!phone) {
+    return res.status(400).json({ error: 'Vui lòng nhập số điện thoại để nhận mã xác minh OTP' });
+  }
+
+  let cleanPhone = String(phone).trim().replace(/[\s.-]/g, '');
+  if (cleanPhone.startsWith('+84')) cleanPhone = '0' + cleanPhone.slice(3);
+
+  const phoneRegex = /^0(3|5|7|8|9)[0-9]{8}$/;
+  if (!phoneRegex.test(cleanPhone)) {
+    return res.status(400).json({ error: 'Số điện thoại không hợp lệ. Vui lòng nhập số di động 10 số (VD: 0987654321)' });
+  }
+
+  // Chống spam: Kiểm tra xem số này có vừa được yêu cầu mã trong vòng 30 giây không
+  const recentOtp = db.prepare(`
+    SELECT id, created_at, (strftime('%s', 'now', 'localtime') - strftime('%s', created_at)) as seconds_ago
+    FROM sms_otp_verifications
+    WHERE phone = ? AND verified = 0 AND created_at > datetime('now', '-30 seconds', 'localtime')
+    ORDER BY id DESC LIMIT 1
+  `).get(cleanPhone);
+
+  if (recentOtp && recentOtp.seconds_ago !== null && recentOtp.seconds_ago < 30) {
+    const waitSeconds = 30 - recentOtp.seconds_ago;
+    return res.status(429).json({
+      error: `Vui lòng đợi ${waitSeconds} giây nữa trước khi yêu cầu gửi lại mã OTP mới.`,
+      wait_seconds: waitSeconds
+    });
+  }
+
+  // Sinh mã OTP 6 số ngẫu nhiên an toàn
+  const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+  const brandName = 'UBND-TANTRIEU';
+  const smsContent = `[${brandName}] Ma OTP xac minh tao tai khoan cua ban la: ${otpCode}. Hieu luc trong 2 phut. Tuyet doi khong chia se ma nay voi bat ky ai.`;
+
+  // Hủy các mã OTP cũ chưa xác minh của số này
+  db.prepare('UPDATE sms_otp_verifications SET verified = -1 WHERE phone = ? AND verified = 0').run(cleanPhone);
+
+  // Lưu mã OTP mới có hiệu lực 2 phút
+  db.prepare(`
+    INSERT INTO sms_otp_verifications (phone, otp_code, expires_at, verified, attempts, ip_address)
+    VALUES (?, ?, datetime('now', '+2 minutes', 'localtime'), 0, 0, ?)
+  `).run(cleanPhone, otpCode, req.ip);
+
+  logAudit(null, 'anonymous', 'citizen', 'SEND_SMS_OTP', 'auth', null, `Gửi mã SMS OTP tới số điện thoại ${cleanPhone}`, req.ip);
+
+  // Trả về dữ liệu thành công kèm gói tin nhắn SMS mô phỏng trực quan
+  res.json({
+    success: true,
+    message: `Đã gửi mã xác thực SMS OTP thành công tới số điện thoại ${cleanPhone}`,
+    phone: cleanPhone,
+    brand_name: brandName,
+    expires_in_seconds: 120,
+    simulated_sms: {
+      brand_name: brandName,
+      sender: brandName,
+      phone: cleanPhone,
+      otp_code: otpCode,
+      content: smsContent,
+      sent_at: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    }
+  });
+});
+
+// 2. Kiểm tra và xác nhận mã SMS OTP
+app.post('/api/auth/verify-otp', (req, res) => {
+  const { phone, otp_code } = req.body;
+  if (!phone || !otp_code) {
+    return res.status(400).json({ error: 'Vui lòng cung cấp số điện thoại và mã xác thực OTP 6 chữ số' });
+  }
+
+  let cleanPhone = String(phone).trim().replace(/[\s.-]/g, '');
+  if (cleanPhone.startsWith('+84')) cleanPhone = '0' + cleanPhone.slice(3);
+  const cleanOtp = String(otp_code).trim();
+
+  const record = db.prepare(`
+    SELECT * FROM sms_otp_verifications
+    WHERE phone = ? AND verified = 0 AND expires_at > datetime('now', 'localtime')
+    ORDER BY id DESC LIMIT 1
+  `).get(cleanPhone);
+
+  if (!record) {
+    return res.status(400).json({
+      error: 'Mã xác thực OTP không tồn tại hoặc đã hết hạn (2 phút). Vui lòng bấm "Gửi lại mã OTP".'
+    });
+  }
+
+  if (record.attempts >= 5) {
+    return res.status(400).json({
+      error: 'Bạn đã nhập sai mã OTP quá 5 lần. Vui lòng bấm "Gửi lại mã OTP" để nhận mã mới.'
+    });
+  }
+
+  if (record.otp_code !== cleanOtp) {
+    db.prepare('UPDATE sms_otp_verifications SET attempts = attempts + 1 WHERE id = ?').run(record.id);
+    const remaining = 5 - (record.attempts + 1);
+    return res.status(400).json({
+      error: `Mã OTP không chính xác. Bạn còn ${remaining} lần thử.`
+    });
+  }
+
+  // Khớp mã OTP chính xác
+  db.prepare('UPDATE sms_otp_verifications SET verified = 1 WHERE id = ?').run(record.id);
+
+  // Ký token xác minh có thời hạn 15 phút
+  const verification_token = jwt.sign(
+    { phone: cleanPhone, verified: true, type: 'phone_verification' },
+    JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+
+  logAudit(null, 'anonymous', 'citizen', 'VERIFY_SMS_OTP_SUCCESS', 'auth', null, `Xác minh SMS OTP thành công cho số ${cleanPhone}`, req.ip);
+
+  res.json({
+    success: true,
+    message: 'Xác minh số điện thoại qua SMS OTP thành công!',
+    phone: cleanPhone,
+    verification_token
+  });
+});
+
+// 3. Đăng ký / Tạo tài khoản mới (Bắt buộc xác thực SMS OTP)
 app.post('/api/auth/register', (req, res) => {
-  const { username, password, confirm_password, full_name, phone, email, role, department, position } = req.body;
+  const { username, password, confirm_password, full_name, phone, email, role, department, position, verification_token, otp_code } = req.body;
 
   if (!username || !String(username).trim()) {
     return res.status(400).json({ error: 'Vui lòng nhập tên đăng nhập' });
@@ -197,6 +323,60 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(400).json({ error: 'Vui lòng nhập họ và tên' });
   }
 
+  // Validate số điện thoại
+  let cleanPhone = phone ? String(phone).trim().replace(/[\s.-]/g, '') : '';
+  if (cleanPhone.startsWith('+84')) cleanPhone = '0' + cleanPhone.slice(3);
+
+  const phoneRegex = /^0(3|5|7|8|9)[0-9]{8}$/;
+  if (!cleanPhone || !phoneRegex.test(cleanPhone)) {
+    return res.status(400).json({ error: 'Vui lòng nhập số điện thoại hợp lệ (10 số di động)' });
+  }
+
+  // Kiểm tra xác thực SMS OTP của số điện thoại
+  let isVerified = false;
+
+  // Cách 1: Kiểm tra verification_token
+  if (verification_token) {
+    try {
+      const decoded = jwt.verify(verification_token, JWT_SECRET);
+      if (decoded.phone === cleanPhone && decoded.verified === true) {
+        isVerified = true;
+      }
+    } catch (e) {}
+  }
+
+  // Cách 2: Nếu gửi kèm mã otp_code trực tiếp
+  if (!isVerified && otp_code) {
+    const otpRecord = db.prepare(`
+      SELECT * FROM sms_otp_verifications 
+      WHERE phone = ? AND otp_code = ? AND expires_at > datetime('now', 'localtime') 
+      ORDER BY id DESC LIMIT 1
+    `).get(cleanPhone, String(otp_code).trim());
+    if (otpRecord) {
+      db.prepare('UPDATE sms_otp_verifications SET verified = 1 WHERE id = ?').run(otpRecord.id);
+      isVerified = true;
+    }
+  }
+
+  // Cách 3: Kiểm tra bản ghi đã xác minh gần nhất trong vòng 30 phút trong CSDL
+  if (!isVerified) {
+    const verifiedRecord = db.prepare(`
+      SELECT id FROM sms_otp_verifications 
+      WHERE phone = ? AND verified = 1 AND created_at > datetime('now', '-30 minutes', 'localtime')
+      ORDER BY id DESC LIMIT 1
+    `).get(cleanPhone);
+    if (verifiedRecord) {
+      isVerified = true;
+    }
+  }
+
+  if (!isVerified) {
+    return res.status(400).json({
+      error: 'Số điện thoại này chưa được xác minh qua SMS OTP. Vui lòng bấm "Gửi mã OTP" và nhập mã xác thực trước khi tạo tài khoản.',
+      requires_otp: true
+    });
+  }
+
   // Check existing username
   const existing = db.prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?)').get(cleanUsername);
   if (existing) {
@@ -214,8 +394,8 @@ app.post('/api/auth/register', (req, res) => {
   const userPos = position ? String(position).trim() : (assignedRole === 'citizen' ? 'Công dân' : 'Cán bộ, chuyên viên');
 
   const stmt = db.prepare(`
-    INSERT INTO users (username, password, full_name, role, department, position, email, phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (username, password, full_name, role, department, position, email, phone, is_phone_verified, phone_verified_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now', 'localtime'))
   `);
 
   const info = stmt.run(
@@ -226,12 +406,12 @@ app.post('/api/auth/register', (req, res) => {
     userDept,
     userPos,
     email ? String(email).trim() : '',
-    phone ? String(phone).trim() : ''
+    cleanPhone
   );
 
   const newUserId = info.lastInsertRowid;
   const token = jwt.sign({ id: newUserId, username: cleanUsername, role: assignedRole }, JWT_SECRET, { expiresIn: '7d' });
-  const newUser = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, is_active, created_at FROM users WHERE id = ?').get(newUserId);
+  const newUser = db.prepare('SELECT id, username, full_name, role, department, position, email, phone, is_active, is_phone_verified, created_at FROM users WHERE id = ?').get(newUserId);
 
   logAudit(newUserId, cleanUsername, assignedRole, 'REGISTER', 'auth', newUserId, `Tạo tài khoản mới thành công (${full_name})`, req.ip);
 
