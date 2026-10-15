@@ -29,12 +29,34 @@ const CitizenPortalPage = {
               ` : `
                 <span class="text-xs text-emerald-300 flex items-center gap-1.5 font-semibold bg-emerald-950/40 px-3 py-1 rounded-xl border border-emerald-500/30">
                   <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
-                  <span>Đã đăng nhập: ${user.full_name}</span>
+                  <span>Công dân: ${user.full_name} ${user.cccd ? `(CCCD: ${user.cccd})` : ''}</span>
                 </span>
               `}
             </div>
           </div>
         </div>
+
+        ${user.cccd ? `
+          <div class="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 flex items-center justify-between shadow-2xs">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                🪪
+              </div>
+              <div>
+                <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                  <span>Hồ sơ công dân điện tử đã định danh Đề án 06</span>
+                  <span class="text-[9px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-black">XÁC THỰC CCCD GẮN CHIP</span>
+                </div>
+                <div class="text-[11px] text-emerald-800">
+                  Họ tên: <b>${user.full_name}</b> • CCCD: <b class="font-mono">${user.cccd}</b> • Nơi thường trú: <b>${user.permanent_address || 'Xã Tân Triều, Thanh Trì, Hà Nội'}</b>
+                </div>
+              </div>
+            </div>
+            <span class="hidden sm:inline-block text-[10px] text-emerald-800 bg-white px-2.5 py-1 rounded-xl font-bold border border-emerald-300">
+              ✓ Đã đối soát eKYC
+            </span>
+          </div>
+        ` : ''}
 
         <div id="request-result-container"></div>
 
@@ -55,7 +77,7 @@ const CitizenPortalPage = {
               <!-- Họ và tên -->
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Họ và tên công dân *</label>
-                <input type="text" name="citizen_name" required value="${user.full_name || ''}" placeholder="Nguyễn Văn A..." class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                <input type="text" name="citizen_name" required value="${user.full_name || ''}" placeholder="Nguyễn Văn A..." class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden" ${user.full_name ? 'readonly' : ''}>
               </div>
 
               <!-- Số điện thoại -->
@@ -137,6 +159,7 @@ const CitizenPortalPage = {
 
     form.onsubmit = async (e) => {
       e.preventDefault();
+      const user = API.getUser() || {};
       const formData = new FormData(form);
       const payload = {
         citizen_name: formData.get('citizen_name'),
@@ -145,7 +168,9 @@ const CitizenPortalPage = {
         address: formData.get('address'),
         category: formData.get('category'),
         title: formData.get('title'),
-        content: formData.get('content')
+        content: formData.get('content'),
+        cccd: user.cccd || null,
+        is_ekyc_verified: user.ekyc_status === 'verified' ? 1 : 0
       };
 
       try {

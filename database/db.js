@@ -345,6 +345,40 @@ function initSchema() {
       created_at TEXT DEFAULT (datetime('now', 'localtime'))
     );
 
+    -- Cơ sở dữ liệu Dân cư Quốc gia & Căn cước công dân gắn chip NFC
+    CREATE TABLE IF NOT EXISTS national_citizen_registry (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cccd TEXT UNIQUE NOT NULL,
+      full_name TEXT NOT NULL,
+      dob TEXT NOT NULL,
+      gender TEXT NOT NULL,
+      ethnicity TEXT DEFAULT 'Kinh',
+      hometown TEXT NOT NULL,
+      permanent_address TEXT NOT NULL,
+      issue_date TEXT NOT NULL,
+      expiry_date TEXT NOT NULL,
+      chip_serial TEXT NOT NULL,
+      portrait_url TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    -- Bản tin & Thông báo UBND Xã/Phường
+    CREATE TABLE IF NOT EXISTS commune_news (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      content TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'thong_bao',
+      author_id INTEGER REFERENCES users(id),
+      author_name TEXT DEFAULT 'UBND Xã Tân Triều',
+      cover_image TEXT,
+      is_published INTEGER DEFAULT 1,
+      is_featured INTEGER DEFAULT 0,
+      views_count INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
     -- Indexes để truy vấn nhanh
     CREATE INDEX IF NOT EXISTS idx_doc_out_status ON doc_out(status);
     CREATE INDEX IF NOT EXISTS idx_doc_out_creator ON doc_out(creator_id);
@@ -362,35 +396,69 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_ip_logs_ip ON ip_access_logs(ip_address);
     CREATE INDEX IF NOT EXISTS idx_ip_rules_ip ON ip_rules(ip_address, is_active);
     CREATE INDEX IF NOT EXISTS idx_captcha_token ON captcha_challenges(token);
+    CREATE INDEX IF NOT EXISTS idx_citizen_registry_cccd ON national_citizen_registry(cccd);
+    CREATE INDEX IF NOT EXISTS idx_commune_news_cat ON commune_news(category, is_published);
   `;
 
   db.exec(schema);
 
   // Migration: Tự động bổ sung các cột cho bảng users nếu chưa tồn tại
   const userCols = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
-  if (!userCols.includes('is_phone_verified')) {
-    try {
-      db.exec('ALTER TABLE users ADD COLUMN is_phone_verified INTEGER DEFAULT 0;');
-    } catch (e) {}
-  }
-  if (!userCols.includes('phone_verified_at')) {
-    try {
-      db.exec('ALTER TABLE users ADD COLUMN phone_verified_at TEXT;');
-    } catch (e) {}
-  }
-  if (!userCols.includes('cccd')) {
-    try {
-      db.exec('ALTER TABLE users ADD COLUMN cccd TEXT;');
-      db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_cccd ON users(cccd) WHERE cccd IS NOT NULL;');
-    } catch (e) {}
-  }
+  const userAddCol = (colName, colType) => {
+    if (!userCols.includes(colName)) {
+      try {
+        db.exec(`ALTER TABLE users ADD COLUMN ${colName} ${colType};`);
+        userCols.push(colName);
+      } catch (err) {}
+    }
+  };
+
+  userAddCol('is_phone_verified', 'INTEGER DEFAULT 0');
+  userAddCol('phone_verified_at', 'TEXT');
+  userAddCol('cccd', 'TEXT');
+  userAddCol('dob', 'TEXT');
+  userAddCol('gender', 'TEXT');
+  userAddCol('ethnicity', "TEXT DEFAULT 'Kinh'");
+  userAddCol('hometown', 'TEXT');
+  userAddCol('permanent_address', 'TEXT');
+  userAddCol('issue_date', 'TEXT');
+  userAddCol('chip_serial', 'TEXT');
+  userAddCol('ekyc_status', "TEXT DEFAULT 'unverified'");
+  userAddCol('ekyc_face_image', 'TEXT');
+  userAddCol('ekyc_match_score', 'REAL');
+  userAddCol('ekyc_verified_at', 'TEXT');
+
   try {
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_cccd ON users(cccd) WHERE cccd IS NOT NULL;');
     db.exec('CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);');
   } catch (e) {}
 
-  // Đảm bảo tài khoản demo có CCCD
+  // Migration: Bổ sung CCCD và eKYC cho online_requests
+  const reqCols = db.prepare('PRAGMA table_info(online_requests)').all().map(c => c.name);
+  if (!reqCols.includes('cccd')) {
+    try { db.exec('ALTER TABLE online_requests ADD COLUMN cccd TEXT;'); } catch (e) {}
+  }
+  if (!reqCols.includes('is_ekyc_verified')) {
+    try { db.exec('ALTER TABLE online_requests ADD COLUMN is_ekyc_verified INTEGER DEFAULT 0;'); } catch (e) {}
+  }
+
+  // Đảm bảo tài khoản demo có CCCD & thông tin eKYC verified
   try {
-    db.prepare("UPDATE users SET cccd = '001195000007', is_phone_verified = 1 WHERE username = 'nguoidan' AND (cccd IS NULL OR cccd = '')").run();
+    db.prepare(`
+      UPDATE users 
+      SET cccd = '001195000007', 
+          is_phone_verified = 1,
+          dob = '1995-10-15',
+          gender = 'Nữ',
+          ethnicity = 'Kinh',
+          hometown = 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+          permanent_address = 'Số 42 Triều Khúc, Xã Tân Triều, Thanh Trì, Hà Nội',
+          chip_serial = 'VN-CHIP-95000007',
+          ekyc_status = 'verified',
+          ekyc_match_score = 99.2,
+          ekyc_verified_at = datetime('now', 'localtime')
+      WHERE username = 'nguoidan' AND (cccd IS NULL OR cccd = '' OR ekyc_status != 'verified')
+    `).run();
     db.prepare("UPDATE users SET cccd = '001088000001', is_phone_verified = 1 WHERE username = 'admin' AND (cccd IS NULL OR cccd = '')").run();
     db.prepare("UPDATE users SET cccd = '001075000002', is_phone_verified = 1 WHERE username = 'chutich' AND (cccd IS NULL OR cccd = '')").run();
   } catch (e) {}

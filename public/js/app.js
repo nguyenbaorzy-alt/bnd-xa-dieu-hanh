@@ -27,7 +27,8 @@ const App = {
     'unit-settings': UnitSettingsPage,
     'workflows': WorkflowSettingsPage,
     'audit-logs': AuditLogsPage,
-    'ip-security': IpSecurityPage
+    'ip-security': IpSecurityPage,
+    'news': CommuneNewsPage
   },
 
   currentRoute: 'dashboard',
@@ -38,7 +39,7 @@ const App = {
 
     // Nếu chưa đăng nhập và không phải đang ở trang public, tự động login demo hoặc mở dashboard
     const user = API.getUser();
-    if (!user && !window.location.hash.includes('citizen-portal') && !window.location.hash.includes('request-tracking')) {
+    if (!user && !window.location.hash.includes('citizen-portal') && !window.location.hash.includes('request-tracking') && !window.location.hash.includes('news')) {
       // Tự động đăng nhập tài khoản Chủ tịch để tiện review ngay lập tức
       API.quickSwitch('chutich').then(() => {
         this.handleRoute();
@@ -57,7 +58,7 @@ const App = {
 
     // Kiểm tra đăng nhập
     const user = API.getUser();
-    const publicRoutes = ['login', 'citizen-portal', 'request-tracking', 'app-rating', 'service-rating'];
+    const publicRoutes = ['login', 'citizen-portal', 'request-tracking', 'app-rating', 'service-rating', 'news'];
 
     if (!user && !publicRoutes.includes(routeName)) {
       window.location.hash = '#login';

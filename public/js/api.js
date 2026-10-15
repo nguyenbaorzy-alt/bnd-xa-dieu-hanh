@@ -102,6 +102,48 @@ const API = {
     });
   },
 
+  // eKYC CCCD Gắn Chip & Sinh trắc học khuôn mặt AI
+  async readNfcChip(cccd) {
+    return this.request('/api/ekyc/nfc-read', {
+      method: 'POST',
+      body: JSON.stringify({ cccd })
+    });
+  },
+
+  async verifyFaceMatch(payload) {
+    return this.request('/api/ekyc/face-match', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+
+  async getDemoCitizens() {
+    return this.request('/api/ekyc/demo-citizens');
+  },
+
+  // Bản tin & Thông báo UBND Xã/Phường
+  async getNews(params = {}) {
+    const q = new URLSearchParams(params).toString();
+    return this.request(`/api/news${q ? '?' + q : ''}`);
+  },
+
+  async getNewsDetail(id) {
+    return this.request(`/api/news/${id}`);
+  },
+
+  async createNews(newsData) {
+    return this.request('/api/news', {
+      method: 'POST',
+      body: JSON.stringify(newsData)
+    });
+  },
+
+  async deleteNews(id) {
+    return this.request(`/api/news/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
   async register(userData) {
     const data = await this.request('/api/auth/register', {
       method: 'POST',

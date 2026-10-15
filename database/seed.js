@@ -6,6 +6,7 @@ function runSeed() {
 
   // Xóa sạch dữ liệu cũ để nạp lại chuẩn
   const tables = [
+    'commune_news', 'national_citizen_registry',
     'kpi_pipeline_sessions', 'task_comments', 'tasks', 'kpi_action_programs', 'kpi_folders', 'kpi_projects', 'kpi_task_types',
     'attachments', 'approval_history', 'service_ratings', 'app_ui_ratings', 'notifications', 'audit_logs',
     'doc_out', 'doc_in', 'online_requests', 'approval_workflows', 'users', 'settings'
@@ -927,6 +928,251 @@ function runSeed() {
   `);
   for (const al of auditLogsData) {
     insertAudit.run(al);
+  }
+
+  // 13. Cơ sở dữ liệu Quốc gia về Dân cư & Căn cước công dân gắn chip NFC
+  const citizensData = [
+    {
+      cccd: '001195000007',
+      full_name: 'Vũ Thị Lan',
+      dob: '1995-10-15',
+      gender: 'Nữ',
+      ethnicity: 'Kinh',
+      hometown: 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      permanent_address: 'Số 42 Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      issue_date: '2021-05-10',
+      expiry_date: '2035-10-15',
+      chip_serial: 'VN-CHIP-95000007',
+      portrait_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '001098000008',
+      full_name: 'Nguyễn Văn An',
+      dob: '1998-03-20',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      hometown: 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      permanent_address: 'Đội 3 Thôn Yên Xá, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      issue_date: '2022-01-15',
+      expiry_date: '2038-03-20',
+      chip_serial: 'VN-CHIP-98000008',
+      portrait_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '001088000001',
+      full_name: 'Nguyễn Văn Quản Trị',
+      dob: '1988-06-12',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      hometown: 'Huyện Thanh Trì, TP. Hà Nội',
+      permanent_address: 'Số 12 Ngõ 66 Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      issue_date: '2021-08-20',
+      expiry_date: '2048-06-12',
+      chip_serial: 'VN-CHIP-88000001',
+      portrait_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '001075000002',
+      full_name: 'Trần Đình Thắng',
+      dob: '1975-09-02',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      hometown: 'Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      permanent_address: 'Thôn Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      issue_date: '2021-04-18',
+      expiry_date: '2035-09-02',
+      chip_serial: 'VN-CHIP-75000002',
+      portrait_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '001095018273',
+      full_name: 'Hoàng Gia Bảo',
+      dob: '1995-11-28',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      hometown: 'Huyện Thanh Trì, TP. Hà Nội',
+      permanent_address: 'Số 88 Đường Chiến Thắng, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      issue_date: '2022-04-12',
+      expiry_date: '2035-11-28',
+      chip_serial: 'VN-CHIP-95018273',
+      portrait_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '001199014528',
+      full_name: 'Lê Thu Trang',
+      dob: '1999-07-14',
+      gender: 'Nữ',
+      ethnicity: 'Kinh',
+      hometown: 'Huyện Thanh Trì, TP. Hà Nội',
+      permanent_address: 'Phòng 608 Chung cư Eco Green, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      issue_date: '2023-08-05',
+      expiry_date: '2039-07-14',
+      chip_serial: 'VN-CHIP-99014528',
+      portrait_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '001092005431',
+      full_name: 'Đỗ Thành Nam',
+      dob: '1992-12-05',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      hometown: 'Huyện Thường Tín, TP. Hà Nội',
+      permanent_address: 'Số 19 Ngõ 111 Triều Khúc, Xã Tân Triều, Huyện Thanh Trì, TP. Hà Nội',
+      issue_date: '2021-11-19',
+      expiry_date: '2032-12-05',
+      chip_serial: 'VN-CHIP-92005431',
+      portrait_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '079198024519',
+      full_name: 'Trần Thị Thu Thảo',
+      dob: '1998-04-22',
+      gender: 'Nữ',
+      ethnicity: 'Kinh',
+      hometown: 'Quận 1, TP. Hồ Chí Minh',
+      permanent_address: 'Số 15 Cù Lao, Phường 2, Quận Phú Nhuận, TP. Hồ Chí Minh',
+      issue_date: '2022-09-10',
+      expiry_date: '2038-04-22',
+      chip_serial: 'VN-CHIP-98024519',
+      portrait_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80'
+    },
+    {
+      cccd: '031093011248',
+      full_name: 'Lê Hoàng Long',
+      dob: '1993-08-16',
+      gender: 'Nam',
+      ethnicity: 'Kinh',
+      hometown: 'Quận Hồng Bàng, TP. Hải Phòng',
+      permanent_address: 'Số 24 Đinh Tiên Hoàng, Phường Hoàng Văn Thụ, Quận Hồng Bàng, TP. Hải Phòng',
+      issue_date: '2021-06-30',
+      expiry_date: '2033-08-16',
+      chip_serial: 'VN-CHIP-93011248',
+      portrait_url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&auto=format&fit=crop&q=80'
+    }
+  ];
+
+  const insertCitizen = db.prepare(`
+    INSERT INTO national_citizen_registry (cccd, full_name, dob, gender, ethnicity, hometown, permanent_address, issue_date, expiry_date, chip_serial, portrait_url)
+    VALUES (@cccd, @full_name, @dob, @gender, @ethnicity, @hometown, @permanent_address, @issue_date, @expiry_date, @chip_serial, @portrait_url)
+  `);
+  for (const c of citizensData) {
+    insertCitizen.run(c);
+  }
+
+  // 14. Bản tin & Thông báo UBND Xã Tân Triều
+  const communeNewsData = [
+    {
+      title: 'Thông báo về việc triển khai kích hoạt Định danh điện tử VNeID Mức 2 và hướng dẫn dịch vụ công trực tuyến',
+      summary: 'UBND Xã phối hợp với Công an Xã Tân Triều tổ chức điểm hướng dẫn cài đặt VNeID Mức độ 2 lưu động tại Nhà văn hóa thôn Triều Khúc và Nhà văn hóa thôn Yên Xá.',
+      content: `Thực hiện Đề án 06 của Chính phủ về phát triển ứng dụng dữ liệu về dân cư, định danh và xác thực điện tử phục vụ chuyển đổi số quốc gia giai đoạn 2022 - 2025, tầm nhìn đến năm 2030;
+
+UBND Xã Tân Triều phối hợp với Công an Xã Tân Triều thông báo kế hoạch tổ chức đợt cao điểm hướng dẫn kích hoạt Định danh điện tử VNeID Mức độ 2 và tích hợp các giấy tờ cá nhân (GPLX, BHYT, Đăng ký xe) cho toàn thể nhân dân trên địa bàn:
+
+1. Thời gian: Từ 08h00 đến 21h30 các ngày từ thứ Hai đến Chủ nhật hàng tuần.
+2. Địa điểm:
+   - Điểm 1: Nhà văn hóa Thôn Triều Khúc (Số 54 Triều Khúc).
+   - Điểm 2: Nhà văn hóa Thôn Yên Xá (Cụm 2 Yên Xá).
+   - Điểm 3: Bộ phận Một cửa - Trụ sở UBND Xã Tân Triều.
+
+3. Giấy tờ công dân mang theo:
+   - Thẻ Căn cước công dân gắn chip điện tử còn thời hạn sử dụng.
+   - Số điện thoại di động chính chủ đã đăng ký với nhà mạng viễn thông.
+   - Thẻ BHYT, Giấy phép lái xe, Đăng ký xe (nếu có nhu cầu tích hợp).
+
+UBND Xã đề nghị các tổ trưởng tổ dân phố, trưởng thôn tích cực tuyên truyền, vận động nhân dân tham gia thực hiện nhằm đảm bảo quyền lợi thiết thực của công dân khi thực hiện các thủ tục hành chính trực tuyến.`,
+      category: 'chuyen_doi_so',
+      author_id: 2,
+      author_name: 'Trần Đình Thắng - Chủ tịch UBND Xã',
+      cover_image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80',
+      is_published: 1,
+      is_featured: 1,
+      views_count: 542
+    },
+    {
+      title: 'UBND Xã Tân Triều phát động phong trào "Ngày Chủ nhật xanh" tổng vệ sinh môi trường kênh mương và ngõ xóm',
+      summary: 'Kêu gọi toàn thể cán bộ, đảng viên, đoàn viên thanh niên và nhân dân đồng loạt ra quân dọn dẹp vệ sinh môi trường, nạo vét cống rãnh thoát nước.',
+      content: `Nhằm xây dựng cảnh quan môi trường sáng - xanh - sạch - đẹp, phòng chống dịch bệnh sốt xuất huyết và chuẩn bị đón các ngày lễ kỷ niệm lớn của Thủ đô;
+
+UBND Xã Tân Triều phối hợp với Ủy ban MTTQ và Đoàn Thanh niên xã phát động phong trào "Ngày Chủ nhật xanh":
+- Thời gian ra quân: 07h00 sáng Chủ nhật hàng tuần.
+- Lực lượng nòng cốt: Cán bộ công chức, đoàn viên thanh niên, hội viên phụ nữ và bà con nhân dân từng ngõ phố.
+- Nhiệm vụ trọng tâm: Thu gom rác thải tồn đọng, bóc xóa biển quảng cáo rao vặt sai quy định, khơi thông dòng chảy tuyến mương tiêu thoát nước Yên Xá.
+
+UBND Xã đề nghị các cơ quan, đơn vị, trường học và hộ kinh doanh trên địa bàn chủ động tổng vệ sinh khuôn viên đơn vị và mặt tiền kinh doanh của gia đình.`,
+      category: 'hoat_dong',
+      author_id: 3,
+      author_name: 'Lê Thị Mai - Phó Chủ tịch UBND Xã',
+      cover_image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
+      is_published: 1,
+      is_featured: 0,
+      views_count: 318
+    },
+    {
+      title: 'Công an Xã Tân Triều cảnh báo thủ đoạn tội phạm công nghệ cao giả danh cơ quan nhà nước lừa đảo',
+      summary: 'Khuyến cáo công dân không làm theo hướng dẫn cài đặt file APK lạ hoặc truy cập đường link không rõ nguồn gốc mạo danh Cổng Dịch vụ công Quốc gia.',
+      content: `Thời gian gần đây, xuất hiện tình trạng đối tượng xấu gọi điện cho người dân tự xưng là cán bộ Công an hoặc cán bộ Tư pháp - Hộ tịch xã Tân Triều thông báo "hồ sơ CCCD bị lỗi", "chưa cập nhật dữ liệu định danh" và yêu cầu người dân tải ứng dụng lạ qua đường link Zalo hoặc mã QR.
+
+CÔNG AN XÃ TÂN TRIỀU XIN THÔNG BÁO VÀ KHUYẾN CÁO ĐẾN BÀ CON NHÂN DÂN:
+1. Lực lượng Công an và cán bộ UBND xã TUYỆT ĐỐI KHÔNG hướng dẫn người dân cài đặt ứng dụng dịch vụ công qua các đường link đuôi .apk, không yêu cầu cung cấp mã OTP ngân hàng hay chuyển tiền vào tài khoản để "xác minh".
+2. Ứng dụng VNeID chỉ được tải chính thức từ CH Play (Android) hoặc App Store (iOS).
+3. Cổng thông tin chính thức của UBND Xã và Cổng Dịch vụ công quốc gia có tên miền đuôi .gov.vn.
+4. Khi nhận được các cuộc gọi có dấu hiệu nghi vấn, người dân cần liên hệ ngay số Hotline Công an Xã Tân Triều: 024 3861 1234 để được xác minh kịp thời.`,
+      category: 'an_ninh',
+      author_id: 1,
+      author_name: 'Công an Xã Tân Triều',
+      cover_image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80',
+      is_published: 1,
+      is_featured: 1,
+      views_count: 689
+    },
+    {
+      title: 'Kế hoạch tiêm phòng mở rộng và khám sức khỏe định kỳ cho người cao tuổi tại Trạm Y tế xã Tân Triều',
+      summary: 'Trạm Y tế xã tổ chức chương trình khám sàng lọc các bệnh mạn tính không lây nhiễm (huyết áp, tiểu đường) và tiêm chủng mở rộng cho trẻ em trong độ tuổi.',
+      content: `Trạm Y tế Xã Tân Triều trân trọng thông báo lịch khám sức khỏe và tiêm chủng tháng này:
+1. Đối tượng:
+   - Người cao tuổi từ 60 tuổi trở lên có đăng ký thường trú hoặc tạm trú tại xã.
+   - Trẻ em từ sơ sinh đến 5 tuổi trong chương trình tiêm chủng mở rộng.
+2. Nội dung khám:
+   - Đo huyết áp, khám tim mạch, tư vấn dinh dưỡng người cao tuổi.
+   - Xét nghiệm đường huyết mao mạch miễn phí cho người trên 65 tuổi.
+   - Tiêm các mũi vắc-xin theo lịch tiêm chủng mở rộng quốc gia.
+3. Địa điểm: Trạm Y tế Xã Tân Triều, Đường Triều Khúc, Xã Tân Triều, Thanh Trì, Hà Nội.
+Trân trọng kính mời bà con đến đúng lịch hẹn.`,
+      category: 'thong_bao',
+      author_id: 4,
+      author_name: 'Trạm Y tế Xã Tân Triều',
+      cover_image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80',
+      is_published: 1,
+      is_featured: 0,
+      views_count: 245
+    },
+    {
+      title: 'Công khai niêm yết thủ tục hành chính thuộc thẩm quyền giải quyết của UBND cấp xã năm 2026',
+      summary: 'Bộ phận Tiếp nhận và Trả kết quả (Một cửa) xã Tân Triều công khai danh mục 152 thủ tục hành chính, quy trình rút ngắn thời gian và tiếp nhận hồ sơ trực tuyến.',
+      content: `Thực hiện chỉ đạo của UBND Thành phố Hà Nội và UBND Huyện Thanh Trì về cải cách hành chính;
+
+UBND Xã Tân Triều thực hiện niêm yết công khai toàn bộ 152 thủ tục hành chính thuộc thẩm quyền cấp xã tại bảng tin trụ sở UBND và trên Hệ thống điều hành điện tử:
+- Lĩnh vực Tư pháp - Hộ tịch: Đăng ký khai sinh, kết hôn, khai tử, chứng thực bản sao, chứng thực chữ ký (thực hiện liên thông và giải quyết ngay trong ngày).
+- Lĩnh vực Địa chính - Xây dựng: Cấp giấy phép xây dựng nhà ở riêng lẻ, trích lục hồ sơ địa chính.
+- Lĩnh vực Lao động - Thương binh & Xã hội: Trợ cấp bảo trợ xã hội, mai táng phí.
+
+Người dân có thể tra cứu mã thủ tục, biểu mẫu và nộp hồ sơ trực tuyến tại Cổng Dịch vụ công điện tử của xã để không phải đi lại nhiều lần.`,
+      category: 'chinh_sach',
+      author_id: 4,
+      author_name: 'Văn phòng UBND Xã Tân Triều',
+      cover_image: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=800&auto=format&fit=crop&q=80',
+      is_published: 1,
+      is_featured: 0,
+      views_count: 412
+    }
+  ];
+
+  const insertNews = db.prepare(`
+    INSERT INTO commune_news (title, summary, content, category, author_id, author_name, cover_image, is_published, is_featured, views_count)
+    VALUES (@title, @summary, @content, @category, @author_id, @author_name, @cover_image, @is_published, @is_featured, @views_count)
+  `);
+  for (const n of communeNewsData) {
+    insertNews.run(n);
   }
 
   // Nạp dữ liệu phân hệ HanoiWork OKR/KPI & AI Assistant

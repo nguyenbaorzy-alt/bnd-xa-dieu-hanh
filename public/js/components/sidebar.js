@@ -78,6 +78,10 @@ const Sidebar = {
           <div>
             <div class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">DỊCH VỤ TRỰC TUYẾN</div>
             <div class="space-y-1">
+              <a href="#news" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isActive('news')} text-emerald-300 hover:text-white">
+                <i data-lucide="newspaper" class="w-4 h-4 shrink-0 text-emerald-400"></i>
+                <span>Tin tức & Bản tin xã</span>
+              </a>
               <a href="#citizen-portal" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isActive('citizen-portal')} text-blue-300 hover:text-white">
                 <i data-lucide="globe" class="w-4 h-4 shrink-0"></i>
                 <span>Gửi yêu cầu trực tuyến</span>
