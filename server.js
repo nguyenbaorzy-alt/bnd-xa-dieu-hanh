@@ -548,10 +548,8 @@ app.post('/api/auth/register', (req, res) => {
   let ekycMatchScore = 98.4;
   let ekycFaceImage = selfie_image || null;
 
-  if (assignedRole === 'citizen' || cccd) {
-    if (!cccd || !String(cccd).trim()) {
-      return res.status(400).json({ error: 'Vui lòng nhập số Căn cước công dân (CCCD 12 số) để xác thực định danh cá nhân' });
-    }
+  // Thẩm định Căn cước công dân (CCCD 12 số) - Không bắt buộc khi đăng ký, chỉ kiểm tra nếu công dân có cung cấp
+  if (cccd && String(cccd).trim()) {
     const cccdParsed = parseCccd(cccd);
     if (!cccdParsed.valid) {
       return res.status(400).json({ error: cccdParsed.error });
@@ -559,22 +557,18 @@ app.post('/api/auth/register', (req, res) => {
     validCccd = cccdParsed.cccd;
     cccdInfo = cccdParsed;
 
-    // Chặn trùng lặp CCCD (Mỗi công dân chỉ được cấp đúng 1 tài khoản)
+    // Chặn trùng lặp CCCD (Mỗi công dân chỉ được gắn đúng 1 tài khoản)
     const existingCccd = db.prepare('SELECT id, full_name FROM users WHERE cccd = ?').get(validCccd);
     if (existingCccd) {
       return res.status(400).json({ error: `Số CCCD [${validCccd}] đã được đăng ký trên hệ thống. Mỗi công dân chỉ được đăng ký duy nhất 1 tài khoản.` });
     }
 
-    // Tra cứu đối soát trực tiếp với Cổng CSDL Dân cư Quốc gia (C06 - Bộ Công An) & Cổng DVCQG
+    // Tra cứu đối soát nếu có CCCD
     if (assignedRole === 'citizen') {
       const nationalLookup = lookupNationalRegistry(validCccd, full_name);
-      if (!nationalLookup.success) {
-        return res.status(400).json({
-          error: nationalLookup.error,
-          mismatched: nationalLookup.mismatched || false
-        });
+      if (nationalLookup && nationalLookup.success) {
+        citizenRecord = nationalLookup.citizen;
       }
-      citizenRecord = nationalLookup.citizen;
 
       // Xác thực chữ ký eKYC sinh trắc học nếu có
       if (ekyc_token) {
@@ -589,7 +583,7 @@ app.post('/api/auth/register', (req, res) => {
         } catch (e) {}
       }
 
-      if (!ekycFaceImage && citizenRecord.portrait_url) {
+      if (!ekycFaceImage && citizenRecord && citizenRecord.portrait_url) {
         ekycFaceImage = citizenRecord.portrait_url;
       }
     } else {

@@ -290,400 +290,135 @@ const LoginPage = {
               </div>
 
               <!-- ========================================== -->
-              <!-- CITIZEN 3-STEP AUTOMATED eKYC WIZARD       -->
+              <!-- CITIZEN PHONE OTP REGISTRATION FORM        -->
               <!-- ========================================== -->
-              <div id="citizen-ekyc-wizard" class="space-y-4">
+              <div id="citizen-ekyc-wizard" class="space-y-3.5">
                 
-                <!-- Stepper Progress Indicator -->
-                <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] font-bold">
-                  <div id="step-pill-1" class="py-2 px-1 rounded-xl bg-blue-600 text-white flex items-center justify-center gap-1 shadow-xs">
-                    <span>1. Nhập CCCD (C06)</span>
+                <!-- Banner: Xác thực Số điện thoại chính chủ -->
+                <div class="p-3.5 rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-md flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/20">
+                    <i data-lucide="smartphone" class="w-5 h-5 text-amber-300"></i>
                   </div>
-                  <div id="step-pill-2" class="py-2 px-1 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center gap-1">
-                    <span>2. AI Face (Tùy chọn)</span>
-                  </div>
-                  <div id="step-pill-3" class="py-2 px-1 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center gap-1">
-                    <span>3. SĐT OTP & MK</span>
-                  </div>
-                </div>
-
-                <!-- BƯỚC 1: QUÉT THẺ NFC CHIP CCCD & TRA CỨU CSDL DÂN CƯ QUỐC GIA -->
-                <div id="ekyc-step-1" class="space-y-3.5">
-                  
-                  <!-- Cổng CSDL Dân cư Quốc gia C06 & NFC Reader Banner -->
-                  <div class="p-4 rounded-2xl bg-gradient-to-br from-blue-950 via-indigo-900 to-slate-900 text-white text-center relative overflow-hidden shadow-lg border border-indigo-800/80">
-                    <div class="relative z-10 space-y-2">
-                      <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold text-amber-300 tracking-wider uppercase">
-                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
-                        <span>CỔNG TRA CỨU CSDL DÂN CƯ QUỐC GIA (BỘ CÔNG AN C06)</span>
-                      </div>
-                      <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-slate-950 flex items-center justify-center mx-auto text-2xl font-bold shadow-lg animate-pulse">
-                        <i data-lucide="nfc" class="w-7 h-7"></i>
-                      </div>
-                      <div>
-                        <div class="font-bold text-sm text-white">VÙNG CẢM ỨNG ĐỌC CHIP CCCD & LIÊN THÔNG DVCQG</div>
-                        <p class="text-[11px] text-blue-200 max-w-md mx-auto mt-0.5">
-                          Chỉ cần nhập số CCCD: Hệ thống tự động tra cứu Họ tên, Ngày sinh, <b>Nơi sinh (Khai sinh)</b>, Quê quán và Thường trú của công dân trên toàn quốc qua Trục NDXP / Đề án 06
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Danh bạ thử nghiệm công dân toàn quốc (63 Tỉnh Thành) -->
-                  <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-700">
-                      <span class="flex items-center gap-1">
-                        <span>🇻🇳 DANH BẠ CÔNG DÂN MẪU TOÀN QUỐC (ĐẠI DIỆN CÁC TỈNH THÀNH):</span>
-                      </span>
-                      <span class="text-blue-700 font-mono">DVCQG • C06 BCA</span>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px]">
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('001195000007', 'Vũ Thị Lan')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Vũ Thị Lan</b> <span class="text-blue-600 block font-mono text-[9px]">001195000007 (Hà Nội)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('001095018273', 'Hoàng Gia Bảo')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Hoàng Gia Bảo</b> <span class="text-blue-600 block font-mono text-[9px]">001095018273 (Hà Nội)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('079198024519', 'Trần Thị Thu Thảo')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Trần Thị Thu Thảo</b> <span class="text-blue-600 block font-mono text-[9px]">079198024519 (TP.HCM)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('079096015682', 'Nguyễn Minh Khang')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Nguyễn Minh Khang</b> <span class="text-blue-600 block font-mono text-[9px]">079096015682 (TP.HCM)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('048094008765', 'Phan Thanh Tùng')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Phan Thanh Tùng</b> <span class="text-blue-600 block font-mono text-[9px]">048094008765 (Đà Nẵng)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('038092019842', 'Lê Đình Trọng')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Lê Đình Trọng</b> <span class="text-blue-600 block font-mono text-[9px]">038092019842 (Thanh Hóa)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('040093017654', 'Nguyễn Hữu Đạt')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Nguyễn Hữu Đạt</b> <span class="text-blue-600 block font-mono text-[9px]">040093017654 (Nghệ An)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('046196008123', 'Trần Nguyễn Hương Giang')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Trần Hương Giang</b> <span class="text-blue-600 block font-mono text-[9px]">046196008123 (Thừa Thiên Huế)</span>
-                      </button>
-                      <button type="button" onclick="LoginPage.selectDemoCitizen('092095012390', 'Huỳnh Tấn Phát')" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-left transition truncate">
-                        <b>Huỳnh Tấn Phát</b> <span class="text-blue-600 block font-mono text-[9px]">092095012390 (Cần Thơ)</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- CCCD & Name Inputs -->
-                  <div class="space-y-2.5">
-                    <div>
-                      <div class="flex items-center justify-between mb-1 text-xs">
-                        <label class="font-bold text-slate-700">Số Căn cước công dân (12 số) *</label>
-                        <span class="text-[10px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">Gõ đủ 12 số để tự động tra cứu</span>
-                      </div>
-                      <div class="relative">
-                        <input type="text" id="nfc-cccd-input" oninput="LoginPage.onCccdInputChange(this)" placeholder="Nhập 12 chữ số CCCD (VD: 038092019842, 001195000007)..." maxlength="12" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 font-mono font-bold text-xs tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
-                        <i data-lucide="credit-card" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div class="flex items-center justify-between mb-1 text-xs">
-                        <label class="font-bold text-slate-700">Họ và tên công dân</label>
-                        <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Tự động nạp từ CSDL Quốc gia</span>
-                      </div>
-                      <div class="relative">
-                        <input type="text" id="nfc-name-input" placeholder="Hệ thống tự động điền họ tên từ Cổng Dân cư Quốc gia..." class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 uppercase font-bold text-xs bg-slate-50 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
-                        <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                      </div>
-                    </div>
-
-                    <button type="button" id="btn-nfc-scan" onclick="LoginPage.handleNfcScan()" class="w-full p-3 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-2">
-                      <i data-lucide="search" class="w-4 h-4 text-amber-300"></i>
-                      <span id="btn-nfc-scan-text">Tra cứu CSDL Dân cư Quốc gia & Đọc Chip NFC</span>
-                    </button>
-                  </div>
-
-                  <!-- Kết quả thẩm định C06 Dân cư Quốc gia (Hiển thị sau khi đối soát thành công) -->
-                  <div id="nfc-result-card" class="hidden p-4 rounded-2xl bg-gradient-to-r from-amber-50/90 via-emerald-50/60 to-white border border-amber-300/80 space-y-3 shadow-sm">
-                    <div class="flex items-center justify-between text-[11px] pb-2 border-b border-amber-200">
-                      <span class="font-bold text-emerald-800 flex items-center gap-1.5">
-                        <i data-lucide="badge-check" class="w-4 h-4 text-emerald-600"></i>
-                        <span>ĐÃ ĐỐI SOÁT TRỰC TUYẾN: C06 BỘ CÔNG AN</span>
-                      </span>
-                      <span id="nfc-chip-serial" class="font-mono text-[10px] text-slate-500">CHIP: VN-CHIP-...</span>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                      <div class="w-18 h-24 rounded-xl overflow-hidden border border-slate-300 bg-slate-100 shrink-0 shadow-xs">
-                        <img id="nfc-card-portrait" src="" alt="Ảnh chip CCCD" class="w-full h-full object-cover">
-                      </div>
-
-                      <div class="space-y-1 text-[11px] flex-1 min-w-0">
-                        <div class="font-black text-slate-900 text-sm truncate" id="nfc-card-name">HỌ VÀ TÊN</div>
-                        <div class="text-slate-700">Số CCCD: <b class="font-mono text-blue-900 font-black" id="nfc-card-cccd">001...</b></div>
-                        <div class="text-slate-700">Ngày sinh: <b class="text-slate-900" id="nfc-card-dob">...</b> • Giới tính: <span id="nfc-card-gender">...</span></div>
-                        <div class="text-slate-700 leading-snug"><b>Nơi sinh / Khai sinh:</b> <span class="text-indigo-950 font-semibold" id="nfc-card-birthplace">...</span></div>
-                        <div class="text-slate-700 truncate">Quê quán: <span id="nfc-card-hometown">...</span></div>
-                        <div class="text-slate-600 truncate">Thường trú: <span id="nfc-card-address">...</span></div>
-                        <div class="pt-1 flex items-center gap-1 text-[10px] text-emerald-700 font-bold">
-                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          <span>Tình trạng: CÒN SỐNG • CHỨNG THƯ SỐ C06 CHÍNH HÃNG</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Hộp Chính danh hóa & Hiệu chỉnh thông tin thật -->
-                    <div class="p-3 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 rounded-xl border border-blue-200/90 space-y-2 text-[11px]">
-                      <div class="flex items-center justify-between">
-                        <span class="font-bold text-blue-900 flex items-center gap-1.5">
-                          <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
-                          <span>Chính danh hóa hồ sơ thật của bạn</span>
-                        </span>
-                        <span class="text-[9.5px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">C06 Bảo mật Cấp 4</span>
-                      </div>
-                      <p class="text-slate-600 text-[10.5px] leading-relaxed">
-                        Hệ thống đã giải mã chính xác 100% <b>Tỉnh thành, Giới tính và Năm sinh</b> từ 12 số CCCD của bạn. Do môi trường thử nghiệm chưa kết nối đường truyền mạng mật CPNet và chứng thư số chuyên dụng HSM của Bộ Công An, nếu <b>Họ tên</b> hoặc <b>Địa chỉ</b> mẫu chưa đúng với bạn, bạn có thể chỉnh sửa trực tiếp bên dưới để hệ thống cập nhật chính thức vào CSDL Dân cư:
-                      </p>
-                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        <div>
-                          <label class="block font-bold text-slate-700 text-[10px] mb-0.5">Họ và tên thật của bạn *</label>
-                          <input type="text" id="nfc-edit-name" placeholder="VD: NGUYỄN VĂN AN..." class="w-full p-2 rounded-lg border border-slate-300 bg-white font-bold text-xs uppercase text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
-                        </div>
-                        <div>
-                          <label class="block font-bold text-slate-700 text-[10px] mb-0.5">Địa chỉ thường trú thật của bạn *</label>
-                          <input type="text" id="nfc-edit-address" placeholder="VD: Số 12, Thôn Triều Khúc, Tân Triều..." class="w-full p-2 rounded-lg border border-slate-300 bg-white font-medium text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
-                        </div>
-                      </div>
-                      <div class="flex justify-end pt-1">
-                        <button type="button" onclick="LoginPage.saveCitizenSync()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] transition shadow-xs flex items-center gap-1.5 cursor-pointer">
-                          <i data-lucide="save" class="w-3.5 h-3.5"></i>
-                          <span>Lưu & Đồng bộ thông tin thật vào C06</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="space-y-2 pt-1">
-                      <button type="button" onclick="LoginPage.goToEkycStep(3)" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-200"></i>
-                        <span>Tiếp tục: Xác thực SĐT & Tạo mật khẩu (Vào web sẽ quét NFC & Mặt)</span>
-                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                      </button>
-
-                      <button type="button" onclick="LoginPage.goToEkycStep(2)" class="w-full p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition flex items-center justify-center gap-1.5">
-                        <i data-lucide="camera" class="w-3.5 h-3.5 text-blue-600"></i>
-                        <span>Tùy chọn: Quét camera khuôn mặt AI & NFC ngay bây giờ</span>
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-
-                <!-- BƯỚC 2: AI FACE eKYC - SO KHỚP KHUÔN MẶT SINH TRẮC HỌC -->
-                <div id="ekyc-step-2" class="space-y-3.5 hidden">
-                  <div class="p-3 bg-indigo-50/80 rounded-2xl border border-indigo-200 text-indigo-950 text-[11px] space-y-1">
-                    <div class="font-bold flex items-center gap-1.5 text-indigo-900">
-                      <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-600"></i>
-                      <span>Đối soát sinh trắc học khuôn mặt trực tiếp với ảnh chip CCCD</span>
-                    </div>
-                    <p class="text-indigo-800">
-                      Công nghệ AI so sánh khuôn mặt camera người thật với ảnh lưu trong chip điện tử thẻ CCCD của công dân <b><span id="step-2-citizen-name">...</span></b>.
+                  <div>
+                    <div class="font-bold text-xs uppercase tracking-wide text-amber-300">ĐĂNG KÝ TÀI KHOẢN CÔNG DÂN</div>
+                    <p class="text-[11px] text-blue-100 mt-0.5 leading-snug">
+                      Xác thực chính chủ bằng Số điện thoại (SMS OTP) nhanh chóng, tiện lợi, không cần CCCD.
                     </p>
                   </div>
-
-                  <!-- Face Camera Frame / Viewfinder -->
-                  <div class="relative bg-slate-950 rounded-3xl overflow-hidden aspect-video max-h-[260px] flex items-center justify-center shadow-lg border border-slate-800">
-                    <!-- Live Video Element -->
-                    <video id="ekyc-video" autoplay playsinline class="w-full h-full object-cover hidden"></video>
-
-                    <!-- Fallback / Simulated Biometric Scan Canvas View -->
-                    <div id="ekyc-simulated-view" class="w-full h-full flex flex-col items-center justify-center text-center p-4 relative">
-                      <div class="w-28 h-36 rounded-full border-2 border-dashed border-emerald-400/80 flex items-center justify-center relative shadow-inner bg-emerald-500/5">
-                        <i data-lucide="user" class="w-12 h-12 text-emerald-400/60"></i>
-                        <!-- Animated scan line -->
-                        <div id="ekyc-scan-bar" class="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-bounce"></div>
-                      </div>
-                      <div class="mt-2 text-[10px] text-emerald-400 font-mono tracking-wider flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span>AI BIOMETRIC CAMERA READY</span>
-                      </div>
-                    </div>
-
-                    <!-- Overlay comparison cards -->
-                    <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-white">
-                      <span class="flex items-center gap-1">
-                        <i data-lucide="camera" class="w-3 h-3 text-emerald-400"></i>
-                        <span>Liveness check: <b class="text-emerald-400">ACTIVE</b></span>
-                      </span>
-                      <span class="text-slate-400">Chống giả mạo 3D</span>
-                    </div>
-                  </div>
-
-                  <!-- Action Buttons for Face Matching -->
-                  <div class="space-y-2">
-                    <button type="button" id="btn-face-match" onclick="LoginPage.handleFaceMatch(false)" class="w-full p-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-2">
-                      <i data-lucide="camera" class="w-4 h-4"></i>
-                      <span id="btn-face-match-text">Bật Camera & Quét khuôn mặt AI</span>
-                    </button>
-
-                    <button type="button" onclick="LoginPage.handleFaceMatch(true)" class="w-full p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition flex items-center justify-center gap-1.5">
-                      <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-600"></i>
-                      <span>Xác thực sinh trắc học ngay (Mô phỏng camera)</span>
-                    </button>
-                  </div>
-
-                  <!-- Result of Face Match -->
-                  <div id="face-match-result" class="hidden p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                      <span class="font-bold text-emerald-900 text-xs flex items-center gap-1.5">
-                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
-                        <span>KHUÔN MẶT TRÙNG KHỚP 100% VỚI CHIP CCCD</span>
-                      </span>
-                      <span id="face-score-badge" class="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-black text-[10px]">
-                        98.6% KHỚP
-                      </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
-                      <div class="p-2 rounded-xl bg-white border border-emerald-200">
-                        <div class="text-slate-400 mb-1">Ảnh trong chip CCCD:</div>
-                        <img id="match-chip-img" src="" class="w-14 h-18 object-cover rounded-lg mx-auto shadow-xs">
-                      </div>
-                      <div class="p-2 rounded-xl bg-white border border-emerald-200">
-                        <div class="text-slate-400 mb-1">Ảnh camera trực tiếp:</div>
-                        <img id="match-selfie-img" src="" class="w-14 h-18 object-cover rounded-lg mx-auto shadow-xs">
-                      </div>
-                    </div>
-
-                    <button type="button" onclick="LoginPage.goToEkycStep(3)" class="w-full p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5">
-                      <span>Bước cuối: Xác thực SĐT & Tạo mật khẩu</span>
-                      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                    </button>
-                  </div>
-
-                  <button type="button" onclick="LoginPage.goToEkycStep(1)" class="w-full text-slate-500 hover:text-slate-800 text-[11px] py-1">
-                    ← Quay lại bước Quét NFC
-                  </button>
-
                 </div>
 
-                <!-- BƯỚC 3: SỐ ĐIỆN THOẠI, SMS OTP & MẬT KHẨU TÀI KHOẢN -->
-                <div id="ekyc-step-3" class="space-y-3.5 hidden">
+                <form id="citizen-final-form" onsubmit="LoginPage.handleCitizenRegisterSubmit(event)" class="space-y-3">
                   
-                  <!-- Citizen Profile Summary Badge -->
-                  <div class="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-300 text-emerald-950 space-y-1.5 shadow-2xs">
-                    <div class="flex items-center justify-between text-[11px] font-bold">
-                      <span class="text-emerald-900 flex items-center gap-1">
-                        <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                        <span id="final-citizen-name">HOÀNG GIA BẢO</span>
-                      </span>
-                      <span class="text-[9px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-black">
-                        ĐÃ XÁC THỰC C06 eKYC
-                      </span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px] text-emerald-800">
-                      <div>CCCD: <b class="font-mono" id="final-citizen-cccd">...</b></div>
-                      <div>Ngày sinh: <b id="final-citizen-dob">...</b></div>
-                      <div class="sm:col-span-2">Nơi sinh (Khai sinh): <b class="text-indigo-950 font-bold" id="final-citizen-birthplace">...</b></div>
-                      <div class="sm:col-span-2">Thường trú: <span id="final-citizen-address">...</span></div>
+                  <!-- Họ và tên công dân -->
+                  <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1 flex items-center gap-1.5">
+                      <i data-lucide="user" class="w-3.5 h-3.5 text-blue-600"></i>
+                      <span>Họ và tên công dân *</span>
+                    </label>
+                    <div class="relative">
+                      <input type="text" id="reg-fullname" required placeholder="Nhập họ và tên đầy đủ (VD: Nguyễn Văn An)..." class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-white font-semibold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                      <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
                     </div>
                   </div>
 
-                  <form id="citizen-final-form" onsubmit="LoginPage.handleCitizenRegisterSubmit(event)" class="space-y-3">
-                    
-                    <!-- Số điện thoại & Xác thực SMS OTP -->
-                    <div class="p-3 bg-blue-50/80 rounded-2xl border border-blue-200 space-y-2.5">
-                      <div class="flex items-center justify-between">
-                        <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                          <i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i>
-                          <span>Số điện thoại chính chủ (Nhận mã SMS OTP) *</span>
-                        </label>
-                        <span id="reg-phone-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-                          <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i>
-                          <span>Đã xác minh</span>
+                  <!-- Số điện thoại & Xác thực SMS OTP -->
+                  <div class="p-3 bg-blue-50/80 rounded-2xl border border-blue-200 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                      <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                        <i data-lucide="phone" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span>Số điện thoại chính chủ (Tên đăng nhập) *</span>
+                      </label>
+                      <span id="reg-phone-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i>
+                        <span>Đã xác minh</span>
+                      </span>
+                    </div>
+
+                    <div class="flex gap-2 items-center">
+                      <div class="relative flex-1">
+                        <input type="tel" id="reg-phone" required placeholder="Nhập số điện thoại (VD: 0987654321)" maxlength="11" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-white font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                        <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
+                      </div>
+                      <button type="button" id="btn-send-sms-otp" onclick="LoginPage.handleSendSmsOtp()" class="px-3.5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer">
+                        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                        <span id="btn-send-sms-text">Gửi mã OTP (SMS)</span>
+                      </button>
+                    </div>
+
+                    <!-- Khung nhập mã OTP -->
+                    <div id="reg-otp-container" class="hidden pt-2 border-t border-blue-200/60 space-y-2">
+                      <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-slate-700 font-semibold flex items-center gap-1">
+                          <i data-lucide="message-square-code" class="w-3.5 h-3.5 text-blue-600"></i>
+                          <span>Nhập 6 số OTP trong tin nhắn SMS:</span>
                         </span>
+                        <span id="otp-timer" class="text-blue-700 font-mono font-bold text-[11px]">120s</span>
                       </div>
 
                       <div class="flex gap-2 items-center">
-                        <div class="relative flex-1">
-                          <input type="tel" id="reg-phone" required placeholder="Nhập số điện thoại (VD: 0987654321)" maxlength="11" class="w-full p-2.5 pl-8 rounded-xl border border-slate-200 bg-white font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                          <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                        </div>
-                        <button type="button" id="btn-send-sms-otp" onclick="LoginPage.handleSendSmsOtp()" class="px-3.5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                          <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                          <span id="btn-send-sms-text">Gửi mã OTP (SMS)</span>
+                        <input type="text" id="reg-otp-code" placeholder="6 số OTP" maxlength="6" class="flex-1 p-2.5 rounded-xl border border-blue-300 bg-white font-mono text-center tracking-widest font-black text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                        <button type="button" id="btn-verify-otp" onclick="LoginPage.handleVerifySmsOtp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shrink-0 cursor-pointer">
+                          Xác nhận OTP
                         </button>
                       </div>
+                    </div>
+                  </div>
 
-                      <!-- Khung nhập mã OTP -->
-                      <div id="reg-otp-container" class="hidden pt-2 border-t border-blue-200/60 space-y-2">
-                        <div class="flex items-center justify-between text-[11px]">
-                          <span class="text-slate-700 font-semibold flex items-center gap-1">
-                            <i data-lucide="message-square-code" class="w-3.5 h-3.5 text-blue-600"></i>
-                            <span>Nhập 6 số OTP trong tin nhắn SMS:</span>
-                          </span>
-                          <span id="otp-timer" class="text-blue-700 font-mono font-bold text-[11px]">120s</span>
-                        </div>
-
-                        <div class="flex gap-2 items-center">
-                          <input type="text" id="reg-otp-code" placeholder="6 số OTP" maxlength="6" class="flex-1 p-2.5 rounded-xl border border-blue-300 bg-white font-mono text-center tracking-widest font-black text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
-                          <button type="button" id="btn-verify-otp" onclick="LoginPage.handleVerifySmsOtp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shrink-0">
-                            Xác nhận OTP
-                          </button>
-                        </div>
+                  <!-- Mật khẩu & Nhập lại mật khẩu -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1 text-xs">Thiết lập mật khẩu *</label>
+                      <div class="relative">
+                        <input type="password" id="reg-password" required minlength="6" placeholder="Mật khẩu..." class="w-full p-2.5 pl-8 pr-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                        <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
+                        <button type="button" onclick="LoginPage.togglePassword('reg-password', 'reg-eye-1')" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer">
+                          <i id="reg-eye-1" data-lucide="eye" class="w-3.5 h-3.5"></i>
+                        </button>
                       </div>
                     </div>
 
-                    <!-- Mật khẩu & Nhập lại mật khẩu -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label class="block font-bold text-slate-700 mb-1">Thiết lập mật khẩu *</label>
-                        <div class="relative">
-                          <input type="password" id="reg-password" required minlength="6" placeholder="Mật khẩu..." class="w-full p-2.5 pl-8 pr-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                          <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                          <button type="button" onclick="LoginPage.togglePassword('reg-password', 'reg-eye-1')" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5">
-                            <i id="reg-eye-1" data-lucide="eye" class="w-3.5 h-3.5"></i>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label class="block font-bold text-slate-700 mb-1">Nhập lại mật khẩu *</label>
-                        <div class="relative">
-                          <input type="password" id="reg-confirm-password" required minlength="6" placeholder="Nhập lại..." class="w-full p-2.5 pl-8 pr-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
-                          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
-                          <button type="button" onclick="LoginPage.togglePassword('reg-confirm-password', 'reg-eye-2')" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5">
-                            <i id="reg-eye-2" data-lucide="eye" class="w-3.5 h-3.5"></i>
-                          </button>
-                        </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1 text-xs">Nhập lại mật khẩu *</label>
+                      <div class="relative">
+                        <input type="password" id="reg-confirm-password" required minlength="6" placeholder="Nhập lại..." class="w-full p-2.5 pl-8 pr-8 rounded-xl border border-slate-200 bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-xs">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3"></i>
+                        <button type="button" onclick="LoginPage.togglePassword('reg-confirm-password', 'reg-eye-2')" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer">
+                          <i id="reg-eye-2" data-lucide="eye" class="w-3.5 h-3.5"></i>
+                        </button>
                       </div>
                     </div>
+                  </div>
 
-                    <!-- Captcha Challenge -->
-                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                      <div class="flex items-center justify-between text-[10px]">
-                        <span class="font-bold text-slate-700">Xác minh Robot (B-Firewall™):</span>
-                        <span class="text-blue-600">Phép tính bảo vệ</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <div id="reg-captcha-container" class="shrink-0 flex items-center justify-center bg-slate-900 rounded-lg overflow-hidden cursor-pointer" onclick="LoginPage.refreshCaptcha('register')" title="Đổi câu hỏi">
-                          <div id="reg-captcha-svg" class="min-w-[120px] h-[34px] flex items-center justify-center text-[10px] text-slate-400">
-                            <span>Đang nạp...</span>
-                          </div>
-                        </div>
-                        <input type="text" id="reg-captcha-answer" placeholder="Kết quả = ?" class="flex-1 p-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-center text-xs">
-                      </div>
+                  <!-- Captcha Challenge -->
+                  <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                    <div class="flex items-center justify-between text-[10px]">
+                      <span class="font-bold text-slate-700">Xác minh Robot (B-Firewall™):</span>
+                      <span class="text-blue-600">Phép tính bảo vệ</span>
                     </div>
+                    <div class="flex items-center gap-2">
+                      <div id="reg-captcha-container" class="shrink-0 flex items-center justify-center bg-slate-900 rounded-lg overflow-hidden cursor-pointer" onclick="LoginPage.refreshCaptcha('register')" title="Đổi câu hỏi">
+                        <div id="reg-captcha-svg" class="min-w-[120px] h-[34px] flex items-center justify-center text-[10px] text-slate-400">
+                          <span>Đang nạp...</span>
+                        </div>
+                      </div>
+                      <input type="text" id="reg-captcha-answer" placeholder="Kết quả = ?" class="flex-1 p-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-center text-xs">
+                    </div>
+                  </div>
 
-                    <button type="submit" id="citizen-submit-btn" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs">
-                      <i data-lucide="user-check" class="w-4 h-4"></i>
-                      <span>Kích hoạt tài khoản & Đăng nhập ngay</span>
-                    </button>
+                  <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0"></i>
+                    <span>Tài khoản đăng nhập của bạn là <b>Số điện thoại</b> vừa xác thực. Sau khi đăng ký, bạn có thể đăng nhập ngay!</span>
+                  </div>
 
-                    <button type="button" onclick="LoginPage.goToEkycStep(2)" class="w-full text-slate-500 hover:text-slate-800 text-[11px] py-1">
-                      ← Quay lại bước Đối soát khuôn mặt
-                    </button>
-                  </form>
-
-                </div>
+                  <button type="submit" id="citizen-submit-btn" class="w-full p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-xs cursor-pointer">
+                    <i data-lucide="user-check" class="w-4 h-4"></i>
+                    <span>Kích hoạt tài khoản & Đăng nhập ngay</span>
+                  </button>
+                </form>
 
               </div>
 
-              <!-- ========================================== -->
+                            <!-- ========================================== -->
               <!-- OFFICER REGISTER FORM (CÁN BỘ XÃ)          -->
               <!-- ========================================== -->
               <div id="officer-register-container" class="hidden space-y-3">
@@ -1095,17 +830,18 @@ const LoginPage = {
 
   async handleCitizenRegisterSubmit(e) {
     e.preventDefault();
-    if (!this.scannedCitizen) {
-      Modals.showToast('Vui lòng nhập 12 số CCCD để tra cứu dữ liệu công dân trước', 'error');
-      this.goToEkycStep(1);
-      return;
-    }
-
+    const fullName = document.getElementById('reg-fullname')?.value?.trim();
     const phone = document.getElementById('reg-phone')?.value?.trim();
     const password = document.getElementById('reg-password')?.value;
     const confirmPassword = document.getElementById('reg-confirm-password')?.value;
     const captchaAnswer = document.getElementById('reg-captcha-answer')?.value?.trim();
     const btn = document.getElementById('citizen-submit-btn');
+
+    if (!fullName) {
+      Modals.showToast('Vui lòng nhập họ và tên công dân', 'error');
+      document.getElementById('reg-fullname')?.focus();
+      return;
+    }
 
     if (!phone) {
       Modals.showToast('Vui lòng nhập số điện thoại', 'error');
@@ -1141,16 +877,13 @@ const LoginPage = {
       }
 
       const res = await API.register({
-        full_name: this.scannedCitizen.full_name,
+        full_name: fullName,
         phone: this.verifiedPhone || phone,
-        cccd: this.scannedCitizen.cccd,
         password,
         confirm_password: confirmPassword,
         role: 'citizen',
         verification_token: this.verificationToken,
         otp_code: this.verifiedOtpCode,
-        ekyc_token: this.ekycToken || null,
-        selfie_image: this.capturedSelfieUrl || null,
         captcha_token: this.regCaptchaToken,
         captcha_answer: captchaAnswer
       });
