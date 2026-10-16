@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài Liệu Đặc Tả Hệ Thống UBND Xã / Phường</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 13.5pt;
+            line-height: 1.45;
+            color: #1e293b;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 50px 60px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+        }
+        .header-quoc-hieu {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header-quoc-hieu h3 {
+            margin: 0 0 4px 0;
+            font-size: 13pt;
+            font-weight: bold;
+            color: #475569;
+            text-transform: uppercase;
+        }
+        .header-quoc-hieu h2 {
+            margin: 0 0 4px 0;
+            font-size: 13pt;
+            font-weight: bold;
+            color: #0f172a;
+        }
+        .header-quoc-hieu p {
+            margin: 0 0 10px 0;
+            font-size: 13pt;
+            font-weight: bold;
+            font-style: italic;
+        }
+        .divider {
+            width: 160px;
+            height: 1px;
+            background: #94a3b8;
+            margin: 0 auto 30px auto;
+        }
+        .main-title {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        .main-title h1 {
+            color: #1e3a8a;
+            font-size: 18pt;
+            font-weight: bold;
+            line-height: 1.3;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+        .main-title p {
+            color: #64748b;
+            font-size: 12.5pt;
+            font-style: italic;
+            margin: 0;
+        }
+        h2.section-title {
+            color: #1e3a8a;
+            font-size: 14.5pt;
+            font-weight: bold;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-top: 35px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+        }
+        h3.sub-section-title {
+            color: #0369a1;
+            font-size: 13.5pt;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        p, li {
+            margin: 6px 0;
+            text-align: justify;
+        }
+        ul {
+            padding-left: 24px;
+            margin: 8px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0 25px 0;
+            font-size: 12pt;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: center;
+        }
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        .badge-green { color: #16a34a; font-weight: bold; }
+        .badge-blue { color: #0284c7; font-weight: bold; }
+        .badge-red { color: #dc2626; font-weight: bold; }
+        .badge-amber { color: #d97706; font-weight: bold; }
+        .footer-note {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px dashed #cbd5e1;
+            color: #94a3b8;
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-quoc-hieu">
+        <h3>Ủy Ban Nhân Dân Xã / Phường</h3>
+        <h2>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h2>
+        <p>Độc lập - Tự do - Hạnh phúc</p>
+        <div class="divider"></div>
+    </div>
+
+    <div class="main-title">
+        <h1>Hệ Thống Quản Lý Văn Bản, Điều Hành Công Việc & Dịch Vụ Công Trực Tuyến</h1>
+        <p>Tài liệu đặc tả kiến trúc, Master System Prompt & Thiết kế giao diện hoàn chỉnh</p>
+    </div>
+
+    <h2 class="section-title">Phần 1: Tổng quan Hệ thống & Phân quyền Người dùng (RBAC)</h2>
+    <p>Hệ thống Quản lý & Điều hành Điện tử UBND Xã/Phường là giải pháp phần mềm chuyển đổi số toàn diện cho chính quyền cơ sở, tích hợp đồng bộ giữa công tác quản lý điều hành nội bộ và cung cấp dịch vụ công trực tuyến cho công dân.</p>
+    <p><strong>Hệ thống phân quyền nghiêm ngặt theo mô hình RBAC với 5 vai trò nghiệp vụ:</strong></p>
+    <ul>
+        <li><strong>Lãnh đạo UBND (lanh_dao):</strong> Chủ tịch, Phó Chủ tịch xã/phường có thẩm quyền phê duyệt công văn đi, giao việc chỉ đạo, đánh giá KPI bộ phận và duyệt tin tức phát ngôn chính thống.</li>
+        <li><strong>Văn thư - Lưu trữ (van_thu):</strong> Tiếp nhận công văn đến, vào sổ văn bản, cấp số và đóng dấu phát hành công văn đi, theo dõi luồng xử lý văn bản toàn cơ quan.</li>
+        <li><strong>Chuyên viên chuyên môn (chuyen_vien):</strong> Cán bộ các ban ngành (Tư pháp, Địa chính - Xây dựng, Văn hóa - Xã hội...) soạn thảo văn bản, tiếp nhận xử lý hồ sơ công dân, thực hiện các chỉ tiêu OKR/KPI được giao.</li>
+        <li><strong>Công dân địa phương (cong_dan):</strong> Đăng ký tài khoản nhanh chóng chỉ bằng Số điện thoại cá nhân (không bắt buộc CCCD phức tạp), gửi phản ánh hiện trường, nộp hồ sơ dịch vụ công và theo dõi tiến độ giải quyết một cửa trực tuyến.</li>
+        <li><strong>Quản trị viên An ninh (admin):</strong> Giám sát hệ thống B-Firewall, theo dõi IP logs thời gian thực, quản lý danh sách IP Whitelist/Blacklist, phân tích và ngăn chặn các mối đe dọa an ninh mạng.</li>
+    </ul>
+
+    <h2 class="section-title">Phần 2: Kiến trúc Kỹ thuật & Công nghệ Áp dụng</h2>
+    <ul>
+        <li><strong>Backend:</strong> Node.js kết hợp Express framework, thiết kế RESTful API tiêu chuẩn cao, xử lý bất đồng bộ đa luồng.</li>
+        <li><strong>Cơ sở dữ liệu:</strong> SQLite cục bộ thông qua better-sqlite3 cho tốc độ truy xuất cực nhanh (trên 10,000 queries/giây), hỗ trợ chế độ WAL (Write-Ahead Logging) an toàn dữ liệu.</li>
+        <li><strong>Frontend:</strong> Kiến trúc Single Page Application (SPA) viết bằng JavaScript thuần (Vanilla JS), giao diện responsive bằng Tailwind CSS, hệ thống biểu tượng Lucide Icons và biểu đồ trực quan hóa dữ liệu Chart.js.</li>
+        <li><strong>Bảo mật & Quản lý Phiên:</strong> Sử dụng express-session với cookie bảo mật HttpOnly, thuật toán băm mật khẩu bcryptjs. Thời hạn phiên đăng nhập được cố định an toàn 6 tiếng chuẩn theo múi giờ Hà Nội (GMT+7 - Asia/Ho_Chi_Minh).</li>
+        <li><strong>Tường lửa B-Firewall:</strong> Cơ chế theo dõi rủi ro IP tự động ở mỗi yêu cầu, phát hiện quét cổng, rate limiting, hỗ trợ Captcha toán học khi phát hiện hành vi bất thường, quản lý IP Whitelist và Blacklist trực tiếp từ giao diện quản trị.</li>
+    </ul>
+
+    <h2 class="section-title">Phần 3: Nguyên tắc Nghiệp vụ Cốt lõi</h2>
+    <h3 class="sub-section-title">3.1. Đăng ký & Xác thực Tài khoản Công dân</h3>
+    <p>Nhằm nâng cao tỷ lệ tiếp cận dịch vụ công trực tuyến của người dân địa phương, hệ thống áp dụng cơ chế đăng ký trực tiếp và tối giản: Công dân chỉ cần nhập Họ tên, Số điện thoại (chính là tên đăng nhập) và Mật khẩu. Bỏ qua các bước quét thẻ CCCD hoặc OTP phức tạp ở bước đăng ký ban đầu, giúp người cao tuổi và mọi tầng lớp nhân dân đều dễ dàng tạo tài khoản và nộp hồ sơ.</p>
+
+    <h3 class="sub-section-title">3.2. Quy trình Xử lý Văn bản 4 Bước</h3>
+    <ul>
+        <li><strong>Luồng Công văn Đi:</strong> Soạn thảo (Chuyên viên) -> Trình duyệt (Lãnh đạo ký số) -> Cấp số & Ban hành (Văn thư đóng dấu số, sinh mã QR tra cứu) -> Lưu trữ hồ sơ điện tử.</li>
+        <li><strong>Luồng Công văn Đến:</strong> Tiếp nhận & Vào sổ (Văn thư) -> Báo cáo & Xin ý kiến (Lãnh đạo phân công phụ trách) -> Tiếp nhận xử lý (Chuyên viên thực hiện) -> Báo cáo kết quả hoàn thành.</li>
+    </ul>
+
+    <h3 class="sub-section-title">3.3. Đánh giá OKR/KPI & Trợ lý ảo AI HanoiWork B-Algo</h3>
+    <p>Tích hợp trợ lý trí tuệ nhân tạo (AI Assistant) phân tích công việc theo quy trình 5 bước nghiêm ngặt: (1) Khảo sát nhiệm vụ được giao, (2) Đánh giá tỷ lệ hoàn thành thực tế, (3) Nhận diện điểm nghẽn tồn đọng, (4) Tính toán chỉ số hiệu suất B-Algo dựa trên trọng số công việc, (5) Đề xuất giải pháp và biểu dương khen thưởng.</p>
+
+    <h2 class="section-title">Phần 4: Thiết kế Giao diện Frontend & Hệ thống Biểu mẫu (Forms)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%;">STT</th>
+                <th style="width: 28%;">Tên Biểu mẫu (Form)</th>
+                <th style="width: 20%;">Tệp Giao diện</th>
+                <th style="width: 44%;">Các Trường Dữ liệu Nhập (Inputs)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align: center;">1</td>
+                <td><strong>Form Đăng nhập</strong></td>
+                <td>login.js</td>
+                <td>Tên đăng nhập / Số điện thoại, Mật khẩu, Ghi nhớ phiên làm việc (6 giờ)</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">2</td>
+                <td><strong>Form Đăng ký Công dân</strong></td>
+                <td>login.js</td>
+                <td>Họ và tên, Số điện thoại (tên tài khoản), Mật khẩu, Xác nhận mật khẩu</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">3</td>
+                <td><strong>Form Soạn Công văn Đi</strong></td>
+                <td>doc-out.js</td>
+                <td>Trích yếu, Loại văn bản, Mức độ khẩn, Lãnh đạo ký duyệt, Tệp đính kèm PDF</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">4</td>
+                <td><strong>Form Tiếp nhận Công văn Đến</strong></td>
+                <td>doc-in.js</td>
+                <td>Số hiệu văn bản đến, Cơ quan ban hành, Ngày đến, Trích yếu, Hạn xử lý, Cán bộ phụ trách</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">5</td>
+                <td><strong>Form Nộp Hồ sơ / Phản ánh</strong></td>
+                <td>requests.js</td>
+                <td>Lĩnh vực thủ tục, Tiêu đề phản ánh, Nội dung chi tiết, Hình ảnh / Tệp tài liệu minh chứng</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">6</td>
+                <td><strong>Form Xử lý Hồ sơ Một cửa</strong></td>
+                <td>requests.js</td>
+                <td>Trạng thái phê duyệt (Duyệt/Từ chối), Ý kiến xử lý của cán bộ, Tệp kết quả giải quyết</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">7</td>
+                <td><strong>Form Giao việc OKR/KPI</strong></td>
+                <td>kpi.js</td>
+                <td>Chuyên viên nhận việc, Mục tiêu chỉ tiêu, Trọng số (%), Hạn hoàn thành, Đơn vị tính</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">8</td>
+                <td><strong>Form Cấu hình Quy tắc B-Firewall</strong></td>
+                <td>security.js</td>
+                <td>Loại quy tắc (Whitelist/Blacklist), Địa chỉ IP / CIDR, Lý do áp dụng quy tắc</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 class="section-title">Phần 5: Đặc tả Hệ thống REST API Backend</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 16%;">Phương thức</th>
+                <th style="width: 34%;">Điểm cuối (Endpoint)</th>
+                <th style="width: 50%;">Chức năng & Mô tả Nghiệp vụ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align: center;"><span class="badge-green">POST</span></td>
+                <td>/api/auth/register</td>
+                <td>Đăng ký tài khoản công dân trực tiếp bằng Họ tên và Số điện thoại</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-green">POST</span></td>
+                <td>/api/auth/login</td>
+                <td>Đăng nhập hệ thống (áp dụng chung cho cả cán bộ và công dân)</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-blue">GET</span></td>
+                <td>/api/auth/me</td>
+                <td>Lấy thông tin người dùng hiện tại và kiểm tra quyền hạn (RBAC)</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-red">POST</span></td>
+                <td>/api/auth/logout</td>
+                <td>Đăng xuất khỏi hệ thống và hủy bỏ phiên làm việc</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-blue">GET</span></td>
+                <td>/api/documents</td>
+                <td>Lấy danh sách công văn (hỗ trợ phân loại, tìm kiếm và lọc trạng thái)</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-green">POST</span></td>
+                <td>/api/documents</td>
+                <td>Tạo mới hoặc ban hành văn bản hành chính điện tử</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-amber">PATCH</span></td>
+                <td>/api/documents/:id/status</td>
+                <td>Cập nhật trạng thái luồng văn bản (Trình duyệt, Ký số, Ban hành)</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-blue">GET</span></td>
+                <td>/api/citizen-requests</td>
+                <td>Danh sách phản ánh và hồ sơ dịch vụ công một cửa</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-green">POST</span></td>
+                <td>/api/citizen-requests</td>
+                <td>Công dân nộp hồ sơ thủ tục hoặc gửi phản ánh hiện trường mới</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-green">POST</span></td>
+                <td>/api/kpis/ai-evaluate</td>
+                <td>Khởi chạy Trợ lý ảo AI B-Algo phân tích và chấm điểm KPI</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-blue">GET</span></td>
+                <td>/api/security/logs</td>
+                <td>Lấy nhật ký giám sát IP và phân tích rủi ro an ninh B-Firewall</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><span class="badge-green">POST</span></td>
+                <td>/api/security/rules</td>
+                <td>Thêm quy tắc IP Whitelist / Blacklist vào tường lửa</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 class="section-title">Phần 6: Hướng dẫn Triển khai, Vận hành & Kiểm thử</h2>
+    <p><strong>1. Khởi tạo Cơ sở dữ liệu & Nạp dữ liệu mẫu:</strong></p>
+    <p>Chạy lệnh: <code>node database/seed.js</code> để tự động khởi tạo toàn bộ bảng, cấu trúc khóa ngoại và nạp dữ liệu mẫu cho hệ thống.</p>
+
+    <p><strong>2. Khởi động Máy chủ Ứng dụng:</strong></p>
+    <p>Chạy lệnh: <code>node server.js</code>. Hệ thống sẽ khởi động và sẵn sàng phục vụ tại địa chỉ <code>http://localhost:3001</code>.</p>
+
+    <p><strong>3. Danh mục Tài khoản Đăng nhập Kiểm thử Mẫu:</strong></p>
+    <ul>
+        <li><strong>Lãnh đạo UBND:</strong> Tài khoản: <code>lanhdao</code> / Mật khẩu: <code>123456</code></li>
+        <li><strong>Bộ phận Văn thư:</strong> Tài khoản: <code>vanthu</code> / Mật khẩu: <code>123456</code></li>
+        <li><strong>Chuyên viên chuyên môn:</strong> Tài khoản: <code>chuyenvien</code> / Mật khẩu: <code>123456</code></li>
+        <li><strong>Quản trị viên An ninh:</strong> Tài khoản: <code>admin</code> / Mật khẩu: <code>123456</code></li>
+        <li><strong>Công dân:</strong> Tài khoản: <code>0912345678</code> / Mật khẩu: <code>123456</code> (hoặc bấm nút Đăng ký tài khoản trên giao diện)</li>
+    </ul>
+
+    <p><strong>4. Bộ Kiểm thử Tự động (136/136 test cases đạt 100%):</strong></p>
+    <p>Hệ thống bao gồm 5 kịch bản kiểm thử tự động toàn diện: đăng ký bằng số điện thoại, an ninh kiểm tra IP và múi giờ GMT+7, đường ống AI đánh giá OKR/KPI, luồng công văn 4 bước và xử lý hồ sơ dịch vụ công.</p>
+
+    <div class="footer-note">
+        --- HẾT TÀI LIỆU ĐẶC TẢ ---
+    </div>
+</div>
+
+</body>
+</html>
